@@ -10,6 +10,9 @@ use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\MerchantController;
 use App\Http\Controllers\Api\Merchant\OfferController;
 use App\Http\Controllers\Api\Merchant\StoreController;
+use App\Http\Controllers\Api\Customer\BarterController;
+use App\Http\Controllers\Api\Customer\BarterMessageController;
+use App\Http\Controllers\Api\Customer\NotificationController;
 use App\Http\Controllers\Api\Merchant\ProductController;
 use App\Http\Controllers\Api\Merchant\CategoryController;
 /*
@@ -56,10 +59,19 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/offers/{id}', [OfferController::class, 'destroy']);
     });
 
-    Route::middleware(['auth:sanctum', 'role:customer'])->group(function () {
+        Route::middleware(['auth:sanctum', 'role:customer'])->group(function () {
         Route::get('/notifications', [NotificationController::class, 'index']);
         Route::post('/notifications', [NotificationController::class, 'store']);
         Route::put('/notifications/{id}', [NotificationController::class, 'update']);
         Route::delete('/notifications/{id}', [NotificationController::class, 'destroy']);
+        // جلب كل الرسائل لمقايضة معينة
+    Route::get('/barters/{barter_id}/messages', [BarterMessageController::class, 'index']);
+
+    // إرسال رسالة جديدة في مقايضة معينة
+    Route::post('/barters/{barter_id}/messages', [BarterMessageController::class, 'store']);
+        Route::post('/barters', [BarterController::class, 'store']);
     });
+
+        Route::get('/barters', [BarterController::class, 'publicIndex']);
+        Route::get('/barters/{id}', [BarterController::class, 'show']);
 });

@@ -9,7 +9,7 @@ use App\Enums\ApiMessage;
 
 class NotificationController extends Controller
 {
-    // 📌 عرض كل التنبيهات
+
     public function index()
     {
         $notifications = Notification::where('user_id', Auth::id())->get();
@@ -20,7 +20,6 @@ class NotificationController extends Controller
         ]);
     }
 
-    // 📌 إضافة تنبيه
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -39,7 +38,6 @@ class NotificationController extends Controller
         ]);
     }
 
-    // 📌 تحديث التنبيه
     public function update(Request $request, $id)
     {
         $notification = Notification::where('user_id', Auth::id())->findOrFail($id);
@@ -57,7 +55,6 @@ class NotificationController extends Controller
         ]);
     }
 
-    // 📌 حذف تنبيه
     public function destroy($id)
     {
         $notification = Notification::where('user_id', Auth::id())->findOrFail($id);
