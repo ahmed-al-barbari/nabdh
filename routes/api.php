@@ -1,0 +1,65 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\AdminController;
+use App\Http\Controllers\Api\CustomerController;
+use App\Http\Controllers\Api\MerchantController;
+use App\Http\Controllers\Api\Merchant\OfferController;
+use App\Http\Controllers\Api\Merchant\StoreController;
+use App\Http\Controllers\Api\Merchant\ProductController;
+use App\Http\Controllers\Api\Merchant\CategoryController;
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register API routes for your application. These
+| routes are loaded by the RouteServiceProvider and all of them will
+| be assigned to the "api" middleware group. Make something great!
+|
+*/
+
+Route::post('register', [AuthController::class, 'register']);
+Route::post('login', [AuthController::class, 'login']);
+
+Route::middleware('auth:sanctum')->group(function () {
+
+    Route::post('logout', [AuthController::class, 'logout']);
+
+    Route::middleware('auth:sanctum')->get('/user', function (Request $request) {});
+
+    Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
+        Route::get('/users', [AdminController::class, 'index']);
+        Route::post('/users', [AdminController::class, 'store']);
+        Route::get('/users/{id}', [AdminController::class, 'show']);
+        Route::put('/users/{id}', [AdminController::class, 'update']);
+        Route::patch('/users/{id}/status', [AdminController::class, 'updateStatus']);
+        Route::delete('/users/{id}', [AdminController::class, 'destroy']);
+        // Route::post('/users/{id}/message', [AdminController::class, 'sendMessage']);
+    });
+
+    Route::prefix('merchant')->middleware(['auth:sanctum', 'role:merchant'])->group(function () {
+
+        Route::apiResource('stores', StoreController::class);
+
+
+        Route::apiResource('stores.categories', CategoryController::class);
+
+
+        Route::apiResource('categories.products', ProductController::class);
+        Route::post('/offers', [OfferController::class, 'store']);
+        Route::put('/offers/{id}', [OfferController::class, 'update']);
+        Route::delete('/offers/{id}', [OfferController::class, 'destroy']);
+    });
+
+    Route::middleware(['auth:sanctum', 'role:customer'])->group(function () {
+        Route::get('/notifications', [NotificationController::class, 'index']);
+        Route::post('/notifications', [NotificationController::class, 'store']);
+        Route::put('/notifications/{id}', [NotificationController::class, 'update']);
+        Route::delete('/notifications/{id}', [NotificationController::class, 'destroy']);
+    });
+});
