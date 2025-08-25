@@ -33,4 +33,11 @@ enum ApiMessage: string
     case NOTIFICATION_CREATED = 'Notification created successfully.';
     case NOTIFICATION_UPDATED = 'Notification updated successfully.';
     case NOTIFICATION_DELETED = 'Notification deleted successfully.';
+    case BARTER_CREATED   = 'Barter has been created successfully.';
+    case BARTER_UPDATED   = 'Barter has been updated successfully.';
+    case BARTER_DELETED   = 'Barter has been deleted successfully.';
+    case BARTER_NOT_FOUND = 'Barter not found.';
+    case BARTER_FETCHED = 'Barters fetched successfully.';
+    case MESSAGE_SENT = 'Message sent successfully.';
+    case UNAUTHORIZED_BARTER_MESSAGE = 'You are not authorized to send messages in this barter.';
 }
