@@ -9,6 +9,7 @@ use App\Enums\ApiMessage;
 
 class NotificationController extends Controller
 {
+
     public function index()
     {
         $notifications = Notification::where('user_id', Auth::id())->get();

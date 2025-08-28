@@ -8,13 +8,20 @@ use Illuminate\Database\Eloquent\Model;
 class Product extends Model
 {
     use HasFactory;
-      protected $fillable = ['category_id','name','description','price','image','quantity'];
 
-    public function category() {
+    protected $fillable = [
+        'category_id', 'name', 'description', 'price', 'image', 'quantity'
+    ];
+
+    // علاقة المنتج بالفئة
+    public function category()
+    {
         return $this->belongsTo(Category::class);
     }
 
-    public function offers() {
-        return $this->hasMany(Offer::class);
+    // علاقة المنتج بالمتجر من خلال الفئة
+    public function store()
+    {
+        return $this->hasOneThrough(Store::class, Category::class, 'id', 'id', 'category_id', 'store_id');
     }
 }

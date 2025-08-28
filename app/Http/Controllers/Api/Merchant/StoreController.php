@@ -10,50 +10,54 @@ use Illuminate\Support\Facades\Auth;
 
 class StoreController extends Controller
 {
-
     public function index()
     {
         $stores = Store::where('user_id', Auth::id())->get();
-        return response()->json($stores);
-    }
 
+        return response()->json([
+            'message' => ApiMessage::STORES_FETCHED->value,
+            'stores'  => $stores
+        ]);
+    }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'address' => 'required|string|max:255',
+            'name'      => 'required|string|max:255',
+            'address'   => 'required|string|max:255',
+            'image'     => 'nullable|string',
+            'latitude'  => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
         ]);
 
         $store = Store::create([
-            'merchant_id' => Auth::id(),
-            'name'        => $validated['name'],
-            'address'     => $validated['address'] ?? null,
-            'description' => $validated['description'] ?? null,
-            'status'      => 'active',
+            'user_id'   => Auth::id(),
+            'name'      => $validated['name'],
+            'address'   => $validated['address'],
+            'image'     => $validated['image'] ?? null,
+            'latitude'  => $validated['latitude'] ?? null,
+            'longitude' => $validated['longitude'] ?? null,
+            'status'    => 'pending', // أول ما ينشأ يكون معلق
         ]);
 
         return response()->json([
             'message' => ApiMessage::STORE_CREATED->value,
             'store'   => $store
-        ]);
-    }
-
-    public function show($id)
-    {
-        $store = Store::where('user_id', Auth::id())->findOrFail($id);
-        return response()->json($store);
+        ], 201);
     }
 
     public function update(Request $request, $id)
     {
-        $validated = $request->validate([
-            'name'    => 'sometimes|string|max:255',
-            'address' => 'sometimes|string|max:255',
-            'description' => 'nullable|string|max:500',
-        ]);
+        $store = Store::where('user_id', Auth::id())->findOrFail($id);
 
-        $store = Store::where('merchant_id', Auth::id())->findOrFail($id);
+        $validated = $request->validate([
+            'name'      => 'sometimes|string|max:255',
+            'address'   => 'sometimes|string|max:255',
+            'image'     => 'nullable|string',
+            'latitude'  => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
+            'status'    => 'in:active,inactive,pending',
+        ]);
 
         $store->update($validated);
 
@@ -63,12 +67,13 @@ class StoreController extends Controller
         ]);
     }
 
-
     public function destroy($id)
     {
         $store = Store::where('user_id', Auth::id())->findOrFail($id);
         $store->delete();
 
-        return response()->json(['message' => ApiMessage::STORE_DELETED->value]);
+        return response()->json([
+            'message' => ApiMessage::STORE_DELETED->value
+        ]);
     }
 }

@@ -6,15 +6,17 @@ use App\Models\User;
 use App\Models\Alert;
 use App\Models\Barter;
 use App\Models\Message;
+use App\Enums\ApiMessage;
 use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class CustomerController extends Controller
 {
-
-      public function updatePreferences(Request $request)
+    // تحديث التفضيلات فقط
+    public function updatePreferences(Request $request)
     {
         $validated = $request->validate([
             'language' => 'in:ar,en',
@@ -26,61 +28,32 @@ class CustomerController extends Controller
         $user->update($validated);
 
         return response()->json([
-            'message' => 'Preferences updated successfully',
+            'message'     => ApiMessage::PREFERENCES_UPDATED->value,
             'preferences' => Arr::only($user->toArray(), ['language', 'currency', 'theme'])
         ]);
     }
 
-    public function addAlert(Request $request) {
-        $request->validate([
-            'product_id'=>'required|exists:products,id',
-            'price_condition'=>'required|in:less,greater',
-            'price'=>'required|numeric',
-            'method'=>'required|in:sms,email,whatsapp'
+    // تحديث البيانات الشخصية
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+
+        $validated = $request->validate([
+            'name'     => 'sometimes|string|max:255',
+            'email'    => 'sometimes|email|unique:users,email,'.$user->id,
+            'phone'    => 'sometimes|string|min:6',
+            'password' => 'sometimes|string|min:6|confirmed', // يتطلب password_confirmation
         ]);
 
-        $alert = Alert::create([
-            'user_id'=>$request->user()->id,
-            'product_id'=>$request->product_id,
-            'price_condition'=>$request->price_condition,
-            'price'=>$request->price,
-            'method'=>$request->method
+        if (isset($validated['password'])) {
+            $validated['password'] = Hash::make($validated['password']);
+        }
+
+        $user->update($validated);
+
+        return response()->json([
+            'message' => ApiMessage::PROFILE_UPDATED->value,
+            'user'    => Arr::only($user->toArray(), ['name','email','phone','language','currency','theme'])
         ]);
-        return response()->json($alert);
-    }
-
-    public function addBarter(Request $request) {
-        $request->validate([
-            'offer_item'=>'required',
-            'request_item'=>'required',
-            'description'=>'nullable'
-        ]);
-
-        $barter = Barter::create([
-            'user_id'=>$request->user()->id,
-            'offer_item'=>$request->offer_item,
-            'request_item'=>$request->request_item,
-            'description'=>$request->description
-        ]);
-
-        return response()->json($barter);
-    }
-
-    public function sendMessage(Request $request,$barter_id) {
-        $request->validate(['message'=>'required']);
-        $message = Message::create([
-            'barter_id'=>$barter_id,
-          //  'barter_id'=>$barter_id,
-            'sender_id'=>$request->user()->id,
-            'message'=>$request->message
-        ]);
-        return response()->json($message);
-    }
-
-    public function deleteAccount(Request $request) {
-        $user = $request->user();
-        $user->delete();
-        return response()->json(['message'=>'Account deleted successfully']);
     }
 }
-

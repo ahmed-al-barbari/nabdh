@@ -13,11 +13,13 @@ return new class extends Migration
     {
         Schema::create('stores', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('merchant_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade'); // التاجر
             $table->string('name');
-            $table->text('description')->nullable();
-            $table->json('location')->nullable(); // { "lat": "xxx", "lng": "xxx" }
-            $table->enum('status', ['active','inactive'])->default('active');
+            $table->string('address');
+            $table->string('image');
+            $table->decimal('latitude', 10, 7)->nullable();   // خط العرض
+            $table->decimal('longitude', 10, 7)->nullable();  // خط الطول
+            $table->enum('status', ['active', 'inactive'])->default('pending');
             $table->timestamps();
         });
     }

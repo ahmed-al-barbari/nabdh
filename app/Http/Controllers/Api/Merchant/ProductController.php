@@ -43,11 +43,32 @@ class ProductController extends Controller
 
     public function show($id)
     {
-        $product = Product::findOrFail($id);
+        $product = Product::with(['category.store'])
+            ->findOrFail($id);
 
         return response()->json([
             'message' => ApiMessage::PRODUCT_FETCHED->value,
-            'product' => $product
+            'product' => [
+                'id'          => $product->id,
+                'name'        => $product->name,
+                'description' => $product->description,
+                'price'       => $product->price,
+                'offer_price' => $product->offer_price,
+                'offer_expiry' => $product->offer_expiry,
+                'image'       => $product->image,
+                'quantity'    => $product->quantity,
+                'category'    => [
+                    'id'   => $product->category->id,
+                    'name' => $product->category->name,
+                ],
+                'store'       => [
+                    'id'      => $product->category->store->id,
+                    'name'    => $product->category->store->name,
+                    'address' => $product->category->store->address,
+                    'lat'     => $product->category->store->latitude,
+                    'lng'     => $product->category->store->longitude,
+                ]
+            ]
         ]);
     }
 

@@ -40,4 +40,8 @@ enum ApiMessage: string
     case BARTER_FETCHED = 'Barters fetched successfully.';
     case MESSAGE_SENT = 'Message sent successfully.';
     case UNAUTHORIZED_BARTER_MESSAGE = 'You are not authorized to send messages in this barter.';
+    case STORE_FETCHED = 'Store fetched successfully';
+    case STORES_FETCHED = 'Stores fetched successfully';
+    case PREFERENCES_UPDATED = 'User preferences updated successfully';
+    case PROFILE_UPDATED     = 'User profile updated successfully';
 }

@@ -8,16 +8,32 @@ use Illuminate\Database\Eloquent\Model;
 class Store extends Model
 {
     use HasFactory;
-    
+
      protected $fillable = [
-        'merchant_id', 'name', 'description', 'location', 'status'
+        'user_id',
+        'name',
+        'address',
+        'image',
+        'latitude',
+        'longitude',
+        'status',
     ];
 
-    public function merchant() {
-        return $this->belongsTo(User::class, 'merchant_id');
+    // كل متجر يخص تاجر
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 
-    public function categories() {
+    // كل متجر له فئات
+    public function categories()
+    {
         return $this->hasMany(Category::class);
+    }
+
+    // كل متجر له منتجات (لو بدنا مباشرة غير الفئات)
+    public function products()
+    {
+        return $this->hasMany(Product::class);
     }
 }

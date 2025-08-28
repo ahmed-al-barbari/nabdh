@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AdminController;
-use App\Http\Controllers\Api\CustomerController;
+use App\Http\Controllers\Api\Customer\CustomerController;
 use App\Http\Controllers\Api\MerchantController;
 use App\Http\Controllers\Api\Merchant\OfferController;
 use App\Http\Controllers\Api\Merchant\StoreController;
@@ -33,7 +33,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('logout', [AuthController::class, 'logout']);
 
-    Route::middleware('auth:sanctum')->get('/user', function (Request $request) {});
+    // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {});
 
     Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
         Route::get('/users', [AdminController::class, 'index']);
@@ -59,19 +59,22 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/offers/{id}', [OfferController::class, 'destroy']);
     });
 
-        Route::middleware(['auth:sanctum', 'role:customer'])->group(function () {
+    Route::middleware(['auth:sanctum', 'role:customer'])->group(function () {
         Route::get('/notifications', [NotificationController::class, 'index']);
         Route::post('/notifications', [NotificationController::class, 'store']);
         Route::put('/notifications/{id}', [NotificationController::class, 'update']);
         Route::delete('/notifications/{id}', [NotificationController::class, 'destroy']);
         // جلب كل الرسائل لمقايضة معينة
-    Route::get('/barters/{barter_id}/messages', [BarterMessageController::class, 'index']);
-
-    // إرسال رسالة جديدة في مقايضة معينة
-    Route::post('/barters/{barter_id}/messages', [BarterMessageController::class, 'store']);
-        Route::post('/barters', [BarterController::class, 'store']);
-    });
-
+        Route::get('/barters/{barter_id}/messages', [BarterMessageController::class, 'index']);
         Route::get('/barters', [BarterController::class, 'publicIndex']);
         Route::get('/barters/{id}', [BarterController::class, 'show']);
+        // إرسال رسالة جديدة في مقايضة معينة
+        Route::post('/barters/{barter_id}/messages', [BarterMessageController::class, 'store']);
+        Route::post('/barters', [BarterController::class, 'store']);
+    });
+    Route::patch('/user/preferences', [CustomerController::class, 'updatePreferences']);
+    Route::patch('/user/profile', [CustomerController::class, 'updateProfile']);
+
+    Route::get('/search/products', [SearchController::class, 'searchProducts']);
+    Route::get('/products/{id}', [ProductController::class, 'show']);
 });
