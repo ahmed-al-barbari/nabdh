@@ -6,15 +6,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AdminController;
+use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\Customer\CustomerController;
-use App\Http\Controllers\Api\MerchantController;
 use App\Http\Controllers\Api\Merchant\OfferController;
 use App\Http\Controllers\Api\Merchant\StoreController;
 use App\Http\Controllers\Api\Customer\BarterController;
 use App\Http\Controllers\Api\Customer\BarterMessageController;
 use App\Http\Controllers\Api\Customer\NotificationController;
-use App\Http\Controllers\Api\Merchant\ProductController;
-use App\Http\Controllers\Api\Merchant\CategoryController;
+use App\Http\Controllers\Api\ProductController;
+// use App\Http\Controllers\Api\Merchant\CategoryController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -41,24 +41,34 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('auth:sanctum')->get('/user', function (Request $request) { });
 
     Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
+
+        // إدارة الأصناف (Categories)
+        Route::apiResource('categories', CategoryController::class)->except(['show']);
+
+        // إدارة المنتجات (Products)
+        Route::apiResource('products', ProductController::class)->except(['show']);
+
         Route::get('/users', [AdminController::class, 'index']);
         Route::post('/users', [AdminController::class, 'store']);
         Route::get('/users/{id}', [AdminController::class, 'show']);
         Route::put('/users/{id}', [AdminController::class, 'update']);
         Route::patch('/users/{id}/status', [AdminController::class, 'updateStatus']);
         Route::delete('/users/{id}', [AdminController::class, 'destroy']);
-        // Route::post('/users/{id}/message', [AdminController::class, 'sendMessage']);
     });
+
 
     Route::prefix('merchant')->middleware(['auth:sanctum', 'role:merchant'])->group(function () {
 
         Route::apiResource('stores', StoreController::class);
 
+        // منتجات التاجر داخل متجره فقط
+        Route::prefix('store/{store}/products')->group(function () {
+            Route::get('/', [ProductController::class, 'index']);
+            Route::post('/', [ProductController::class, 'store']);
+            Route::put('/{product}', [ProductController::class, 'update']);
+            Route::delete('/{product}', [ProductController::class, 'destroy']);
+        });
 
-        Route::apiResource('stores.categories', CategoryController::class);
-
-
-        Route::apiResource('categories.products', ProductController::class);
         Route::post('/offers', [OfferController::class, 'store']);
         Route::put('/offers/{id}', [OfferController::class, 'update']);
         Route::delete('/offers/{id}', [OfferController::class, 'destroy']);

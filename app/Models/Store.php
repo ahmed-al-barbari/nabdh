@@ -19,21 +19,9 @@ class Store extends Model
         'status',
     ];
 
-    // كل متجر يخص تاجر
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
-
-    // كل متجر له فئات
-    public function categories()
-    {
-        return $this->hasMany(Category::class);
-    }
-
-    // كل متجر له منتجات (لو بدنا مباشرة غير الفئات)
     public function products()
     {
         return $this->hasMany(Product::class);
     }
+
 }

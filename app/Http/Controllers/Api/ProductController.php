@@ -1,36 +1,64 @@
 <?php
 
-namespace App\Http\Controllers\Api\Merchant;
+namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use Illuminate\Support\Facades\Auth;
 use App\Enums\ApiMessage;
+use App\Models\Store;
 
 class ProductController extends Controller
 {
-    public function index()
-    {
-        $products = Product::whereHas('category.store', function ($q) {
+   public function index()
+{
+    $products = Product::with(['category.store'])
+        ->whereHas('category.store', function ($q) {
             $q->where('user_id', Auth::id());
-        })->get();
+        })->get()
+        ->map(function ($product) {
+            return [
+                'id'          => $product->id,
+                'name'        => $product->name,
+                'description' => $product->description,
+                'price'       => $product->price,
+                'offer_price' => $product->offer_price,
+                'offer_expiry'=> $product->offer_expiry,
+                'image'       => $product->image,
+                'quantity'    => $product->quantity,
+                'category'    => [
+                    'id'   => $product->category->id,
+                    'name' => $product->category->name,
+                ],
+                'store'       => [
+                    'id'      => $product->category->store->id,
+                    'name'    => $product->category->store->name,
+                    'address' => $product->category->store->address,
+                    'lat'     => $product->category->store->latitude,
+                    'lng'     => $product->category->store->longitude,
+                ]
+            ];
+        });
 
-        return response()->json([
-            'message'  => ApiMessage::PRODUCTS_FETCHED->value,
-            'products' => $products
-        ]);
-    }
+    return response()->json([
+        'message'  => ApiMessage::PRODUCTS_FETCHED->value,
+        'products' => $products
+    ]);
+}
+
 
     public function store(Request $request)
     {
+        $store = Store::where('user_id', Auth::id())->firstOrFail();
         $validated = $request->validate([
+            'store_id' => 'required|exists:stores,id',
             'category_id' => 'required|exists:categories,id',
-            'name'        => 'required|string|max:255',
+            'name' => 'required|string',
             'description' => 'nullable|string',
-            'price'       => 'required|numeric|min:0',
-            'image'       => 'nullable|string',
-            'quantity'    => 'required|integer|min:0',
+            'price' => 'required|numeric',
+            'quantity' => 'required|integer',
+            'image' => 'nullable|string',
         ]);
 
         $product = Product::create($validated);
@@ -38,13 +66,13 @@ class ProductController extends Controller
         return response()->json([
             'message' => ApiMessage::PRODUCT_CREATED->value,
             'product' => $product
-        ], 201);
+        ]);
     }
+
 
     public function show($id)
     {
-        $product = Product::with(['category.store'])
-            ->findOrFail($id);
+    $product = Product::with(['category.store'])->findOrFail($id);
 
         return response()->json([
             'message' => ApiMessage::PRODUCT_FETCHED->value,
@@ -76,14 +104,14 @@ class ProductController extends Controller
     {
         $product = Product::findOrFail($id);
 
-        $this->authorizeProduct($product);
-
         $validated = $request->validate([
-            'name'        => 'sometimes|string|max:255',
+            'store_id' => 'required|exists:stores,id',
+            'category_id' => 'required|exists:categories,id',
+            'name' => 'required|string',
             'description' => 'nullable|string',
-            'price'       => 'sometimes|numeric|min:0',
-            'image'       => 'nullable|string',
-            'quantity'    => 'sometimes|integer|min:0',
+            'price' => 'required|numeric',
+            'quantity' => 'required|integer',
+            'image' => 'nullable|string',
         ]);
 
         $product->update($validated);
@@ -97,21 +125,10 @@ class ProductController extends Controller
     public function destroy($id)
     {
         $product = Product::findOrFail($id);
-
-        $this->authorizeProduct($product);
-
         $product->delete();
 
         return response()->json([
             'message' => ApiMessage::PRODUCT_DELETED->value
         ]);
-    }
-
-    // التحقق إن المنتج تبع التاجر الحالي
-    private function authorizeProduct(Product $product)
-    {
-        if ($product->category->store->user_id !== Auth::id()) {
-            abort(403, ApiMessage::UNAUTHORIZED->value);
-        }
     }
 }

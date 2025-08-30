@@ -44,4 +44,5 @@ enum ApiMessage: string
     case STORES_FETCHED = 'Stores fetched successfully';
     case PREFERENCES_UPDATED = 'User preferences updated successfully';
     case PROFILE_UPDATED     = 'User profile updated successfully';
-}
+    case STORE_ALREADY_EXISTS   = 'You already have a store. Only one store per merchant is allowed.';
+    }

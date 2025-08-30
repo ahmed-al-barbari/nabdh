@@ -12,13 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('stores', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade'); // التاجر
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->string('name');
             $table->string('address');
-            $table->string('image');
-            $table->decimal('latitude', 10, 7)->nullable();   // خط العرض
-            $table->decimal('longitude', 10, 7)->nullable();  // خط الطول
+            $table->string('image')->nullable();
+            $table->decimal('latitude', 10, 7)->nullable();
+            $table->decimal('longitude', 10, 7)->nullable();
             $table->enum('status', ['active', 'inactive'])->default('pending');
             $table->timestamps();
         });

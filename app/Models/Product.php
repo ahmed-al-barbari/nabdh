@@ -9,19 +9,15 @@ class Product extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'category_id', 'name', 'description', 'price', 'image', 'quantity'
-    ];
+    protected $fillable = ['store_id', 'category_id', 'name', 'description', 'price', 'quantity', 'image'];
 
-    // علاقة المنتج بالفئة
+    public function store()
+    {
+        return $this->belongsTo(Store::class);
+    }
+
     public function category()
     {
         return $this->belongsTo(Category::class);
-    }
-
-    // علاقة المنتج بالمتجر من خلال الفئة
-    public function store()
-    {
-        return $this->hasOneThrough(Store::class, Category::class, 'id', 'id', 'category_id', 'store_id');
     }
 }

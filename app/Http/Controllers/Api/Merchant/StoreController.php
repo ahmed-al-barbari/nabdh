@@ -22,6 +22,20 @@ class StoreController extends Controller
 
     public function store(Request $request)
     {
+        $user = Auth::user();
+
+        // إذا كان المستخدم تاجر، تحقق إنه ما عندوش متجر مسبق
+        if ($user->role === 'merchant') {
+            $existingStore = Store::where('user_id', $user->id)->first();
+            if ($existingStore) {
+                return response()->json([
+                    'message' => ApiMessage::STORE_ALREADY_EXISTS->value,
+                    'store'   => $existingStore
+                ], 403);
+            }
+        }
+
+        // Validate المدخلات
         $validated = $request->validate([
             'name'      => 'required|string|max:255',
             'address'   => 'required|string|max:255',
@@ -30,14 +44,16 @@ class StoreController extends Controller
             'longitude' => 'nullable|numeric',
         ]);
 
+        // إنشاء المتجر
         $store = Store::create([
-            'user_id'   => Auth::id(),
+            'user_id'   => $user->id,
             'name'      => $validated['name'],
             'address'   => $validated['address'],
             'image'     => $validated['image'] ?? null,
             'latitude'  => $validated['latitude'] ?? null,
             'longitude' => $validated['longitude'] ?? null,
-            'status'    => 'pending', // أول ما ينشأ يكون معلق
+            // حالة المتجر: إذا أدمن يكون active مباشرة، وإذا تاجر يكون pending
+            'status'    => $user->role === 'admin' ? 'active' : 'pending',
         ]);
 
         return response()->json([
@@ -48,7 +64,8 @@ class StoreController extends Controller
 
     public function update(Request $request, $id)
     {
-        $store = Store::where('user_id', Auth::id())->findOrFail($id);
+        $store = Store::findOrFail($id);
+        $user = Auth::user();
 
         $validated = $request->validate([
             'name'      => 'sometimes|string|max:255',
@@ -59,6 +76,18 @@ class StoreController extends Controller
             'status'    => 'in:active,inactive,pending',
         ]);
 
+        // إذا المستخدم تاجر، لا يسمح له بتغيير الحالة
+        if ($user->role === 'merchant' && isset($validated['status'])) {
+            unset($validated['status']);
+        }
+
+        // إذا المستخدم تاجر، تأكد أنه صاحب المتجر
+        if ($user->role === 'merchant' && $store->user_id !== $user->id) {
+            return response()->json([
+                'message' => ApiMessage::UNAUTHORIZED->value
+            ], 403);
+        }
+
         $store->update($validated);
 
         return response()->json([
@@ -66,6 +95,7 @@ class StoreController extends Controller
             'store'   => $store
         ]);
     }
+
 
     public function destroy($id)
     {
