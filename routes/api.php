@@ -30,10 +30,15 @@ Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/auth/user', function () {
+        return request()->user();
+    });
 
-    Route::post('logout', [AuthController::class, 'logout']);
 
-    // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {});
+    Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+
+
+    Route::middleware('auth:sanctum')->get('/user', function (Request $request) { });
 
     Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
         Route::get('/users', [AdminController::class, 'index']);
@@ -66,8 +71,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/notifications/{id}', [NotificationController::class, 'destroy']);
         // جلب كل الرسائل لمقايضة معينة
         Route::get('/barters/{barter_id}/messages', [BarterMessageController::class, 'index']);
-        Route::get('/barters', [BarterController::class, 'publicIndex']);
-        Route::get('/barters/{id}', [BarterController::class, 'show']);
+
         // إرسال رسالة جديدة في مقايضة معينة
         Route::post('/barters/{barter_id}/messages', [BarterMessageController::class, 'store']);
         Route::post('/barters', [BarterController::class, 'store']);
@@ -75,6 +79,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/user/preferences', [CustomerController::class, 'updatePreferences']);
     Route::patch('/user/profile', [CustomerController::class, 'updateProfile']);
 
-    Route::get('/search/products', [SearchController::class, 'searchProducts']);
-    Route::get('/products/{id}', [ProductController::class, 'show']);
+    Route::get('/barters', [BarterController::class, 'publicIndex']);
+    Route::get('/barters/{id}', [BarterController::class, 'show']);
 });
