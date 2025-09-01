@@ -17,21 +17,23 @@ class CustomerController extends Controller
 {
     // تحديث التفضيلات فقط
     public function updatePreferences(Request $request)
-    {
-        $validated = $request->validate([
-            'language' => 'in:ar,en',
-            'currency' => 'in:ILS,USD',
-            'theme'    => 'in:light,dark',
-        ]);
+{
+    $validated = $request->validate([
+        'language'            => 'in:ar,en',
+        'currency'            => 'in:ILS,USD',
+        'theme'               => 'in:light,dark',
+        'notification_method' => 'in:sms,email,whatsapp,push',
+    ]);
 
-        $user = Auth::user();
-        $user->update($validated);
+    $user = Auth::user();
+    $user->update($validated);
 
-        return response()->json([
-            'message'     => ApiMessage::PREFERENCES_UPDATED->value,
-            'preferences' => Arr::only($user->toArray(), ['language', 'currency', 'theme'])
-        ]);
-    }
+    return response()->json([
+        'message'     => ApiMessage::PREFERENCES_UPDATED->value,
+        'preferences' => Arr::only($user->toArray(), ['language', 'currency', 'theme', 'notification_method'])
+    ]);
+}
+
 
     // تحديث البيانات الشخصية
     public function updateProfile(Request $request)
