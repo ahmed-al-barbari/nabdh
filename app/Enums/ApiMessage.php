@@ -45,4 +45,7 @@ enum ApiMessage: string
     case PREFERENCES_UPDATED = 'User preferences updated successfully';
     case PROFILE_UPDATED     = 'User profile updated successfully';
     case STORE_ALREADY_EXISTS   = 'You already have a store. Only one store per merchant is allowed.';
-    }
+    case FAVORITES_FETCHED = 'Favorites fetched successfully';
+    case FAVORITE_ADDED    = 'Product added to favorites';
+    case FAVORITE_REMOVED  = 'Product removed from favorites';
+}

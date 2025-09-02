@@ -22,6 +22,8 @@ return new class extends Migration {
             $table->string('language')->default('ar');
             $table->string('currency')->default('ILS'); // شيكل
             $table->string('theme')->default('light');
+            $table->enum('notification_method', ['sms', 'email','whatsapp', 'push'])
+                ->default('push'); // الافتراضي مثلاً Push
             $table->rememberToken();
             $table->softDeletes();
             $table->timestamps();

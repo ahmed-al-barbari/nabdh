@@ -11,19 +11,31 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
 {
-   use HasApiTokens, Notifiable, HasRoles;
+    use HasApiTokens, Notifiable, HasRoles;
 
     protected $fillable = [
-        'name', 'email', 'password', 'phone','address', 'role', 'status'
+        'name',
+        'email',
+        'password',
+        'phone',
+        'address',
+        'role',
+        'status',
+        'notification_method'
     ];
+    public function favorites()
+    {
+        return $this->hasMany(Favorite::class);
+    }
 
     /**
      * The attributes that should be hidden for serialization.
      *
      * @var array<int, string>
      */
-   protected $hidden = [
-        'password', 'remember_token',
+    protected $hidden = [
+        'password',
+        'remember_token',
     ];
     /**
      * The attributes that should be cast.

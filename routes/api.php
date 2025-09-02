@@ -6,12 +6,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AdminController;
+use App\Http\Controllers\Api\Auth\ForgotPasswordController;
+use App\Http\Controllers\Api\Auth\ResetPasswordController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\Customer\CustomerController;
 use App\Http\Controllers\Api\Merchant\OfferController;
 use App\Http\Controllers\Api\Merchant\StoreController;
 use App\Http\Controllers\Api\Customer\BarterController;
 use App\Http\Controllers\Api\Customer\BarterMessageController;
+use App\Http\Controllers\Api\Customer\FavoriteController;
 use App\Http\Controllers\Api\Customer\NotificationController;
 use App\Http\Controllers\Api\ProductController;
 // use App\Http\Controllers\Api\Merchant\CategoryController;
@@ -29,6 +32,9 @@ use App\Http\Controllers\Api\ProductController;
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 
+Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink']);
+Route::post('/reset-password', [ResetPasswordController::class, 'reset']);
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/auth/user', function () {
         return request()->user();
@@ -38,7 +44,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
 
-    Route::middleware('auth:sanctum')->get('/user', function (Request $request) { });
+    Route::middleware('auth:sanctum')->get('/user', function (Request $request) {});
 
     Route::get('/categories', [CategoryController::class, 'getCategories']);
 
@@ -76,7 +82,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/offers/{id}', [OfferController::class, 'destroy']);
     });
 
-    Route::middleware(['auth:sanctum', 'role:customer'])->group(function () {
+    Route::middleware(['auth:sanctum', 'role:customer,merchant,admin'])->group(function () {
         Route::get('/notifications', [NotificationController::class, 'index']);
         Route::post('/notifications', [NotificationController::class, 'store']);
         Route::put('/notifications/{id}', [NotificationController::class, 'update']);
@@ -87,6 +93,11 @@ Route::middleware('auth:sanctum')->group(function () {
         // إرسال رسالة جديدة في مقايضة معينة
         Route::post('/barters/{barter_id}/messages', [BarterMessageController::class, 'store']);
         Route::post('/barters', [BarterController::class, 'store']);
+        //المفضلات
+        Route::get('/favorites', [FavoriteController::class, 'index']);
+        Route::post('/favorites/{productId}', [FavoriteController::class, 'store']);
+        Route::delete('/favorites/{productId}', [FavoriteController::class, 'destroy']);
+        Route::get('/search/stores', [SearchController::class, 'searchStores']);
     });
     Route::patch('/user/preferences', [CustomerController::class, 'updatePreferences']);
     Route::patch('/user/profile', [CustomerController::class, 'updateProfile']);
