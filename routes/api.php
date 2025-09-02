@@ -40,13 +40,15 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::middleware('auth:sanctum')->get('/user', function (Request $request) { });
 
+    Route::get('/categories', [CategoryController::class, 'getCategories']);
+
     Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
 
         // إدارة الأصناف (Categories)
         Route::apiResource('categories', CategoryController::class)->except(['show']);
 
         // إدارة المنتجات (Products)
-        Route::apiResource('products', ProductController::class)->except(['show']);
+        Route::apiResource('products', \App\Http\Controllers\Api\Admin\ProductController::class)->except(['show']);
 
         Route::get('/users', [AdminController::class, 'index']);
         Route::post('/users', [AdminController::class, 'store']);

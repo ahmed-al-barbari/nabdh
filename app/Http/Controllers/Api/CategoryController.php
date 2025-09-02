@@ -10,7 +10,7 @@ use App\Http\Controllers\Controller;
 
 class CategoryController extends Controller
 {
-     public function index()
+    public function index()
     {
         $categories = Category::all();
         return response()->json([
@@ -39,7 +39,7 @@ class CategoryController extends Controller
         $category = Category::findOrFail($id);
 
         $validated = $request->validate([
-            'name' => 'required|string|unique:categories,name,'.$id,
+            'name' => 'required|string|unique:categories,name,' . $id,
             'description' => 'nullable|string'
         ]);
 
@@ -58,6 +58,15 @@ class CategoryController extends Controller
 
         return response()->json([
             'message' => ApiMessage::CATEGORY_DELETED->value
+        ]);
+    }
+
+    public function getCategories()
+    {
+        $categories = Category::select('id', 'name')->get();
+
+        return response()->json([
+            'categories' => $categories
         ]);
     }
 }

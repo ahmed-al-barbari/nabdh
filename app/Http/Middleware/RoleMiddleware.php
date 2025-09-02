@@ -14,13 +14,13 @@ class RoleMiddleware
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-     public function handle(Request $request, \Closure $next, string $role)
+    public function handle(Request $request, \Closure $next, string $role)
     {
         $user = $request->user();
-
         if (!$user || $user->role !== $role) {
             return response()->json([
-              'message' => ApiMessage::UNAUTHORIZED->value ], 403);
+                'message' => ApiMessage::UNAUTHORIZED->value
+            ], 403);
         }
 
         return $next($request);

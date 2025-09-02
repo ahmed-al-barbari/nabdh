@@ -15,27 +15,27 @@ class AdminController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:6',
-            'phone'    => 'nullable|string',
-            'address'  => 'nullable|string',
-            'role'     => 'required|in:customer,merchant,admin',
+            'phone' => 'nullable|string',
+            'address' => 'nullable|string',
+            'role' => 'required|in:customer,merchant,admin',
         ]);
 
         $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
+            'name' => $request->name,
+            'email' => $request->email,
             'password' => Hash::make($request->password),
-            'phone'    => $request->phone,
-            'address'  => $request->address,
-            'role'     => $request->role,
-            'status'   => 'pending',
+            'phone' => $request->phone,
+            'address' => $request->address,
+            'role' => $request->role,
+            'status' => 'pending',
         ]);
 
         return response()->json([
             'message' => ApiMessage::USER_CREATED->value,
-            'user'    => $user
+            'user' => $user
         ], 201);
     }
 
@@ -57,24 +57,23 @@ class AdminController extends Controller
         return response()->json($users);
     }
 
-
     public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);
 
         $request->validate([
-            'name'    => 'nullable|string|max:255',
-            'email'   => 'nullable|email|unique:users,email,' . $user->id,
-            'phone'   => 'nullable|string',
+            'name' => 'nullable|string|max:255',
+            'email' => 'nullable|email|unique:users,email,' . $user->id,
+            'phone' => 'nullable|string',
             'address' => 'nullable|string',
-            'status'  => 'nullable|in:active,pending,inactive',
+            'status' => 'nullable|in:active,pending,inactive',
         ]);
 
         $user->update($request->all());
 
         return response()->json([
             'message' => ApiMessage::USER_UPDATED->value,
-            'user'    => $user
+            'user' => $user
         ]);
     }
     public function show($id)
@@ -104,8 +103,8 @@ class AdminController extends Controller
         $user->update(['status' => $request->status]);
 
         return response()->json([
-            'message' =>  ApiMessage::USER_STATUS_UPDATED->value,
-            'user'    => $user
+            'message' => ApiMessage::USER_STATUS_UPDATED->value,
+            'user' => $user
         ]);
     }
 
