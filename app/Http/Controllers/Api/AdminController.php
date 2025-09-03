@@ -62,11 +62,12 @@ class AdminController extends Controller
         $user = User::findOrFail($id);
 
         $request->validate([
-            'name' => 'nullable|string|max:255',
-            'email' => 'nullable|email|unique:users,email,' . $user->id,
-            'phone' => 'nullable|string',
-            'address' => 'nullable|string',
-            'status' => 'nullable|in:active,pending,inactive',
+            // 'name' => 'nullable|string|max:255',
+            // 'email' => 'nullable|email|unique:users,email,' . $user->id,
+            // 'phone' => 'nullable|string',
+            // 'address' => 'nullable|string',
+            'status' => 'sometimes|required|in:active,pending,inactive',
+            'role' => 'sometimes|required|in:merchant,customer'
         ]);
 
         $user->update($request->all());

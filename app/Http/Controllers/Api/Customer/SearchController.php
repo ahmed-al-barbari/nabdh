@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Api\Customer;
 
 use App\Models\Store;
 use App\Models\Product;
@@ -13,12 +13,12 @@ class SearchController extends Controller
     public function searchStores(Request $request)
     {
         $request->validate([
-            'latitude'   => 'required|numeric',
-            'longitude'  => 'required|numeric',
-            'product'    => 'nullable|string',
-            'min_price'  => 'nullable|numeric|min:0',
-            'max_price'  => 'nullable|numeric|min:0',
-            'per_page'   => 'nullable|integer|min:1'
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
+            'product' => 'nullable|string',
+            'min_price' => 'nullable|numeric|min:0',
+            'max_price' => 'nullable|numeric|min:0',
+            'per_page' => 'nullable|integer|min:1'
         ]);
 
         $lat = $request->latitude;
@@ -57,7 +57,7 @@ class SearchController extends Controller
 
         return response()->json([
             'message' => ApiMessage::STORES_FETCHED->value,
-            'stores'  => $stores
+            'stores' => $stores
         ]);
     }
 

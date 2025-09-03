@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Api\Customer\SearchController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
@@ -44,12 +45,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
 
-    Route::middleware('auth:sanctum')->get('/user', function (Request $request) {});
+    Route::middleware('auth:sanctum')->get('/user', function (Request $request) { });
 
     Route::get('/categories', [CategoryController::class, 'getCategories']);
 
     Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
-
+        Route::get('/dashboard', [DashboardController::class, 'index']);
         // إدارة الأصناف (Categories)
         Route::apiResource('categories', CategoryController::class)->except(['show']);
 
