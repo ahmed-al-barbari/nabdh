@@ -20,6 +20,11 @@ class AdminSeeder extends Seeder
             'email' => 'admin@gmail.com',
             'phone' => '+792565656565',
             'role' => 'admin',
+            'notification_methods' => [
+                'sms' => false,
+                'email' => false,
+                'whats' => false,
+            ],
         ]);
     }
 }

@@ -21,7 +21,8 @@ class User extends Authenticatable
         'address',
         'role',
         'status',
-        'notification_method'
+        // 'notification_method',
+        'notification_methods',
     ];
     public function favorites()
     {
@@ -37,6 +38,7 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
     /**
      * The attributes that should be cast.
      *
@@ -45,5 +47,6 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'notification_methods' => 'json',
     ];
 }

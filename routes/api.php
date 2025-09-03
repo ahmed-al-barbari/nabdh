@@ -48,6 +48,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('auth:sanctum')->get('/user', function (Request $request) { });
 
     Route::get('/categories', [CategoryController::class, 'getCategories']);
+    Route::get('/products', [ProductController::class, 'getProducts']);
 
     Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index']);
@@ -83,9 +84,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/offers/{id}', [OfferController::class, 'destroy']);
     });
 
-    Route::middleware(['auth:sanctum', 'role:customer,merchant,admin'])->group(function () {
+    Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/notifications', [NotificationController::class, 'index']);
         Route::post('/notifications', [NotificationController::class, 'store']);
+        Route::put('/notifications/change-status-methods', [NotificationController::class, 'changeMethodStauts']);
         Route::put('/notifications/{id}', [NotificationController::class, 'update']);
         Route::delete('/notifications/{id}', [NotificationController::class, 'destroy']);
         // جلب كل الرسائل لمقايضة معينة

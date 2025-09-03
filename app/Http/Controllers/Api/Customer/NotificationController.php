@@ -13,7 +13,7 @@ class NotificationController extends Controller
 
     public function index()
     {
-        $notifications = Notification::where('user_id', Auth::id())->get();
+        $notifications = Notification::with(['product:id,name'])->where('user_id', Auth::id())->get();
 
         return response()->json([
             'message' => ApiMessage::NOTIFICATION_LIST->value,
@@ -24,21 +24,18 @@ class NotificationController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'title'   => 'required|string|max:255',
-            'message' => 'required|string',
+            // 'title' => 'required|string|max:255',
+            'product_id' => 'required|int|exists:main_products,id',
+            'type' => 'required|string|in:lt,gt',
+            'target_price' => 'required|int',
         ]);
 
         $user = Auth::user();
 
-        $notification = Notification::create([
-            'user_id' => $user->id,
-            'title'   => $validated['title'],
-            'message' => $validated['message'],
-            'method'  => $user->notification_method, // ناخدها من البروفايل
-        ]);
+        $notification = Notification::create([...$validated, 'user_id' => $user->id]);
 
         return response()->json([
-            'message'      => ApiMessage::NOTIFICATION_CREATED->value,
+            'message' => ApiMessage::NOTIFICATION_CREATED->value,
             'notification' => $notification
         ], 201);
     }
@@ -48,13 +45,13 @@ class NotificationController extends Controller
         $notification = Notification::where('user_id', Auth::id())->findOrFail($id);
 
         $validated = $request->validate([
-            'target_price' => 'nullable|numeric|min:0'
+            'status' => 'nullable|string|in:active,inactive'
         ]);
 
         $notification->update($validated);
 
         return response()->json([
-            'message'      => ApiMessage::NOTIFICATION_UPDATED->value,
+            'message' => ApiMessage::NOTIFICATION_UPDATED->value,
             'notification' => $notification
         ]);
     }
@@ -67,5 +64,25 @@ class NotificationController extends Controller
         return response()->json([
             'message' => ApiMessage::NOTIFICATION_DELETED->value
         ]);
+    }
+
+    public function changeMethodStauts(Request $request)
+    {
+        $request->validate([
+            'status' => 'required|boolean',
+            'notification_method' => 'required|in:email,sms,whats',
+        ]);
+
+        $user = Auth::user();
+
+        $methods = $user->notification_methods ?? [];
+
+        $methods[$request->notification_method] = $request->status;
+
+        $user->notification_methods = $methods;
+        $user->save();
+
+        return response()->json(['message' => 'Notification method updated successfully']);
+
     }
 }

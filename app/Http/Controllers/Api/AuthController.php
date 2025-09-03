@@ -34,8 +34,12 @@ class AuthController extends Controller
 
         $validated = $validator->validate();
         $validated['password'] = Hash::make($validated['password']);
-
-        $user = User::create($validated);
+        $validated['notification_methods'] = [
+            'sms' => false,
+            'email' => false,
+            'whats' => false,
+        ];
+                $user = User::create($validated);
 
         Auth::guard('web')->login($user);
 

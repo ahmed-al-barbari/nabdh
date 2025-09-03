@@ -16,6 +16,7 @@ class Notification extends Model
         'method',
         'status',
         'is_triggered',
+        'type',
     ];
 
     public function user()
@@ -25,6 +26,6 @@ class Notification extends Model
 
     public function product()
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(MainProduct::class, 'product_id');
     }
 }
