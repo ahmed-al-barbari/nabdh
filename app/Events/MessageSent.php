@@ -2,7 +2,7 @@
 // app/Events/MessageSent.php
 namespace App\Events;
 
-use App\Models\Message;
+use App\Models\MessageConversation;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow; // لحظي
 use Illuminate\Foundation\Events\Dispatchable;
@@ -12,7 +12,7 @@ class MessageSent implements ShouldBroadcastNow
 {
     use Dispatchable, SerializesModels;
 
-    public function __construct(public Message $message) {}
+    public function __construct(public MessageConversation $message) {}
 
     public function broadcastOn()
     {
