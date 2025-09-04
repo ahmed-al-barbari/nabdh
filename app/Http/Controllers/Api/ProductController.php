@@ -14,37 +14,41 @@ class ProductController extends Controller
 {
     public function index()
     {
-        $products = Product::with(['category.store'])
-            ->whereHas('category.store', function ($q) {
-                $q->where('user_id', Auth::id());
-            })->get()
-            ->map(function ($product) {
-                return [
-                    'id' => $product->id,
-                    'name' => $product->name,
-                    'description' => $product->description,
-                    'price' => $product->price,
-                    'offer_price' => $product->offer_price,
-                    'offer_expiry' => $product->offer_expiry,
-                    'image' => $product->image,
-                    'quantity' => $product->quantity,
-                    'category' => [
-                        'id' => $product->category->id,
-                        'name' => $product->category->name,
-                    ],
-                    'store' => [
-                        'id' => $product->category->store->id,
-                        'name' => $product->category->store->name,
-                        'address' => $product->category->store->address,
-                        'lat' => $product->category->store->latitude,
-                        'lng' => $product->category->store->longitude,
-                    ]
-                ];
-            });
+        // $products = Product::with(['category.store'])
+        //     ->whereHas('category.store', function ($q) {
+        //         $q->where('user_id', Auth::id());
+        //     })->get()
+        //     ->map(function ($product) {
+        //         return [
+        //             'id' => $product->id,
+        //             'name' => $product->name,
+        //             'description' => $product->description,
+        //             'price' => $product->price,
+        //             'offer_price' => $product->offer_price,
+        //             'offer_expiry' => $product->offer_expiry,
+        //             'image' => $product->image,
+        //             'quantity' => $product->quantity,
+        //             'category' => [
+        //                 'id' => $product->category->id,
+        //                 'name' => $product->category->name,
+        //             ],
+        //             'store' => [
+        //                 'id' => $product->category->store->id,
+        //                 'name' => $product->category->store->name,
+        //                 'address' => $product->category->store->address,
+        //                 'lat' => $product->category->store->latitude,
+        //                 'lng' => $product->category->store->longitude,
+        //             ]
+        //         ];
+        //     });
+
+
+
+        $products = Auth::user()->store?->products()->with(['store:id,name,address'])->get() ?? collect();
 
         return response()->json([
             'message' => ApiMessage::PRODUCTS_FETCHED->value,
-            'products' => $products
+            'products' => $products->isNotEmpty() ? $products : [],
         ]);
     }
 
@@ -52,16 +56,25 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $store = Store::where('user_id', Auth::id())->firstOrFail();
+
         $validated = $request->validate([
-            'store_id' => 'required|exists:stores,id',
-            'category_id' => 'required|exists:categories,id',
-            'name' => 'required|string',
+            // 'store_id' => 'required|exists:stores,id',
+            'product_id' => 'required|exists:main_products,id',
+            // 'name' => 'required|string',
             'description' => 'nullable|string',
             'price' => 'required|numeric',
-            'quantity' => 'required|integer',
-            'image' => 'nullable|string',
+            // 'quantity' => 'required|integer',
+            'image' => 'required|image',
         ]);
 
+        if ($store->products()->where('product_id', $request->product_id)->exists()) {
+            return response()->json([
+                'message' => 'this product exits',
+            ]);
+        }
+
+        // $validated['image'] = $request->file('image')->store('/products');
+        $validated['store_id'] = $store->id;
         $product = Product::create($validated);
 
         return response()->json([
@@ -73,32 +86,37 @@ class ProductController extends Controller
 
     public function show($id)
     {
-        $product = Product::with(['category.store'])->findOrFail($id);
+        // $product = Product::with(['category.store'])->findOrFail($id);
 
+        $product = Auth::user()->store->products()->with(['store:id,name,address'])->where('id', $id)->first();
         return response()->json([
             'message' => ApiMessage::PRODUCT_FETCHED->value,
-            'product' => [
-                'id' => $product->id,
-                'name' => $product->name,
-                'description' => $product->description,
-                'price' => $product->price,
-                'offer_price' => $product->offer_price,
-                'offer_expiry' => $product->offer_expiry,
-                'image' => $product->image,
-                'quantity' => $product->quantity,
-                'category' => [
-                    'id' => $product->category->id,
-                    'name' => $product->category->name,
-                ],
-                'store' => [
-                    'id' => $product->category->store->id,
-                    'name' => $product->category->store->name,
-                    'address' => $product->category->store->address,
-                    'lat' => $product->category->store->latitude,
-                    'lng' => $product->category->store->longitude,
-                ]
-            ]
+            'product' => $product,
         ]);
+        // return response()->json([
+        //     'message' => ApiMessage::PRODUCT_FETCHED->value,
+        //     'product' => [
+        //         'id' => $product->id,
+        //         'name' => $product->name,
+        //         'description' => $product->description,
+        //         'price' => $product->price,
+        //         'offer_price' => $product->offer_price,
+        //         'offer_expiry' => $product->offer_expiry,
+        //         'image' => $product->image,
+        //         'quantity' => $product->quantity,
+        //         'category' => [
+        //             'id' => $product->category->id,
+        //             'name' => $product->category->name,
+        //         ],
+        //         'store' => [
+        //             'id' => $product->category->store->id,
+        //             'name' => $product->category->store->name,
+        //             'address' => $product->category->store->address,
+        //             'lat' => $product->category->store->latitude,
+        //             'lng' => $product->category->store->longitude,
+        //         ]
+        //     ]
+        // ]);
     }
 
     public function update(Request $request, $id)
@@ -106,13 +124,13 @@ class ProductController extends Controller
         $product = Product::findOrFail($id);
 
         $validated = $request->validate([
-            'store_id' => 'required|exists:stores,id',
-            'category_id' => 'required|exists:categories,id',
-            'name' => 'required|string',
+            // 'store_id' => 'required|exists:stores,id',
+            // 'category_id' => 'required|exists:categories,id',
+            'product_id' => 'sometimes|required|exists:main_products,id',
             'description' => 'nullable|string',
-            'price' => 'required|numeric',
-            'quantity' => 'required|integer',
-            'image' => 'nullable|string',
+            'price' => 'sometimes|required|numeric',
+            // 'quantity' => 'required|integer',
+            'image' => 'sometimes|required|file',
         ]);
 
         $product->update($validated);
@@ -125,8 +143,8 @@ class ProductController extends Controller
 
     public function destroy($id)
     {
-        $product = Product::findOrFail($id);
-        $product->delete();
+        $product = Auth::user()->store->products()->where('id', $id)->first();
+        $product?->delete();
 
         return response()->json([
             'message' => ApiMessage::PRODUCT_DELETED->value

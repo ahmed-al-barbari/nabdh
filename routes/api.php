@@ -35,6 +35,8 @@ Route::post('login', [AuthController::class, 'login']);
 
 Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink']);
 Route::post('/reset-password', [ResetPasswordController::class, 'reset']);
+Route::get('/categories', [CategoryController::class, 'getCategories']);
+Route::get('/products', [ProductController::class, 'getProducts']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/auth/user', function () {
@@ -45,10 +47,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
 
+
+
     Route::middleware('auth:sanctum')->get('/user', function (Request $request) { });
 
-    Route::get('/categories', [CategoryController::class, 'getCategories']);
-    Route::get('/products', [ProductController::class, 'getProducts']);
 
     Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index']);
@@ -72,9 +74,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('stores', StoreController::class);
 
         // منتجات التاجر داخل متجره فقط
-        Route::prefix('store/{store}/products')->group(function () {
+        Route::prefix('store/products')->group(function () {
             Route::get('/', [ProductController::class, 'index']);
             Route::post('/', [ProductController::class, 'store']);
+            Route::get('/{product}', [ProductController::class, 'show']);
             Route::put('/{product}', [ProductController::class, 'update']);
             Route::delete('/{product}', [ProductController::class, 'destroy']);
         });

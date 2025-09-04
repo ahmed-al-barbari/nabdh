@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Notifications\Notifiable;
@@ -49,4 +50,9 @@ class User extends Authenticatable
         'password' => 'hashed',
         'notification_methods' => 'json',
     ];
+
+    public function store(): HasOne
+    {
+        return $this->hasOne(Store::class);
+    }
 }
