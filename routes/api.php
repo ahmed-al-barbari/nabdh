@@ -10,6 +10,8 @@ use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\Auth\ForgotPasswordController;
 use App\Http\Controllers\Api\Auth\ResetPasswordController;
 use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\Chat\ConversationController;
+use App\Http\Controllers\Api\Chat\MessageController;
 use App\Http\Controllers\Api\Customer\CustomerController;
 use App\Http\Controllers\Api\Merchant\OfferController;
 use App\Http\Controllers\Api\Merchant\StoreController;
@@ -18,6 +20,8 @@ use App\Http\Controllers\Api\Customer\BarterMessageController;
 use App\Http\Controllers\Api\Customer\FavoriteController;
 use App\Http\Controllers\Api\Customer\NotificationController;
 use App\Http\Controllers\Api\ProductController;
+use Illuminate\Support\Facades\Broadcast;
+
 // use App\Http\Controllers\Api\Merchant\CategoryController;
 /*
 |--------------------------------------------------------------------------
@@ -49,7 +53,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 
-    Route::middleware('auth:sanctum')->get('/user', function (Request $request) { });
+    Route::middleware('auth:sanctum')->get('/user', function (Request $request) {});
 
 
     Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
@@ -104,10 +108,20 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/favorites/{productId}', [FavoriteController::class, 'store']);
         Route::delete('/favorites/{productId}', [FavoriteController::class, 'destroy']);
         Route::get('/search/stores', [SearchController::class, 'searchStores']);
+        Route::patch('/user/profile', [CustomerController::class, 'updateProfile']);
     });
     Route::patch('/user/preferences', [CustomerController::class, 'updatePreferences']);
     Route::patch('/user/profile', [CustomerController::class, 'updateProfile']);
 
     Route::get('/barters', [BarterController::class, 'publicIndex']);
     Route::get('/barters/{id}', [BarterController::class, 'show']);
+    Broadcast::routes(['middleware' => ['auth:sanctum']]);
+    Route::middleware(['auth:sanctum'])->group(function () {
+        // بدء/جلب محادثة 1:1
+        Route::post('/conversations/start', [ConversationController::class, 'start']);
+
+        // رسائل المحادثة
+        Route::get('/conversations/{id}/messages', [MessageController::class, 'index']);
+        Route::post('/conversations/{id}/messages', [MessageController::class, 'store']);
+    });
 });
