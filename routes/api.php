@@ -125,3 +125,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/conversations/{id}/messages', [MessageController::class, 'store']);
     });
 });
+Route::middleware('auth:sanctum')->prefix('chat')->group(function () {
+    Route::get('/conversations', [ConversationController::class, 'index']);
+    Route::post('/conversations', [ConversationController::class, 'start']);
+    Route::post('/messages/{id}/read', [MessageController::class, 'markAsRead']);
+
+});

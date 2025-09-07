@@ -13,13 +13,16 @@ return new class extends Migration
     {
         Schema::create('barters', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->string('offer_item');
-            $table->string('request_item');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+
+            $table->string('offer_item');    // المنتج المعروض
+            $table->string('request_item');  // المنتج المطلوب
             $table->text('description')->nullable();
-            $table->json('location')->nullable(); // { "lat": "xxx", "lng": "xxx" }
-            $table->string('image')->nullable();
-            $table->enum('status',['active','completed','inactive'])->default('active');
+            $table->string('location')->nullable();
+
+            $table->string('image')->nullable(); // رابط الصورة
+            $table->enum('status', ['pending', 'accepted', 'rejected'])->default('pending');
+
             $table->timestamps();
         });
     }

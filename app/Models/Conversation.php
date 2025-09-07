@@ -2,27 +2,33 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Conversation extends Model
 {
-    use HasFactory;
-
     protected $fillable = ['user_one_id', 'user_two_id'];
 
-    public function message_conversation()
+    public function userOne()
+    {
+        return $this->belongsTo(User::class, 'user_one_id');
+    }
+
+    public function userTwo()
+    {
+        return $this->belongsTo(User::class, 'user_two_id');
+    }
+
+    public function messages_conversation()
     {
         return $this->hasMany(MessageConversation::class);
     }
-
-    public function participants()
+    
+    public function scopeBetween($query, $user1, $user2)
     {
-        return $this->belongsToMany(User::class, 'conversation_user'); // اختياري إن أردت Pivot
-    }
+        $ids = [$user1, $user2];
+        sort($ids);
 
-    public function includesUser($userId): bool
-    {
-        return in_array($userId, [$this->user_one_id, $this->user_two_id]);
+        return $query->where('user_one_id', $ids[0])
+            ->where('user_two_id', $ids[1]);
     }
 }

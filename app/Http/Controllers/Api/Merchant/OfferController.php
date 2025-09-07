@@ -4,13 +4,11 @@ namespace App\Http\Controllers\Api\Merchant;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Offer;
-use App\Models\Product;
 use Illuminate\Support\Facades\Auth;
 use App\Enums\ApiMessage;
 
 class OfferController extends Controller
 {
-
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -21,9 +19,14 @@ class OfferController extends Controller
             'end_date'         => 'required|date|after:start_date',
         ]);
 
-        $product = Product::findOrFail($validated['product_id']);
+        // 🔐 تحقق أن المنتج يخص التاجر الحالي
+        $isOwner = Auth::user()
+            ->store
+            ?->products()
+            ->where('id', $validated['product_id'])
+            ->exists();
 
-        if ($product->category->store->user_id !== Auth::id()) {
+        if (! $isOwner) {
             return response()->json([
                 'message' => ApiMessage::UNAUTHORIZED->value
             ], 403);
@@ -41,7 +44,18 @@ class OfferController extends Controller
     {
         $offer = Offer::findOrFail($id);
 
-        $this->authorizeOffer($offer);
+        // 🔐 تحقق أن المنتج تبع التاجر
+        $isOwner = Auth::user()
+            ->store
+            ?->products()
+            ->where('id', $offer->product_id)
+            ->exists();
+
+        if (! $isOwner) {
+            return response()->json([
+                'message' => ApiMessage::UNAUTHORIZED->value
+            ], 403);
+        }
 
         $validated = $request->validate([
             'discount_price'   => 'nullable|numeric|min:0',
@@ -63,20 +77,22 @@ class OfferController extends Controller
     {
         $offer = Offer::findOrFail($id);
 
-        $this->authorizeOffer($offer);
+        $isOwner = Auth::user()
+            ->store
+            ?->products()
+            ->where('id', $offer->product_id)
+            ->exists();
+
+        if (! $isOwner) {
+            return response()->json([
+                'message' => ApiMessage::UNAUTHORIZED->value
+            ], 403);
+        }
 
         $offer->delete();
 
         return response()->json([
             'message' => ApiMessage::OFFER_DELETED->value
         ]);
-    }
-
-    // حماية التاجر
-    private function authorizeOffer(Offer $offer)
-    {
-        if ($offer->product->category->store->user_id !== Auth::id()) {
-            abort(403, ApiMessage::UNAUTHORIZED->value);
-        }
     }
 }

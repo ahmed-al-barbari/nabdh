@@ -7,6 +7,7 @@ use App\Models\Barter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Enums\ApiMessage;
+use Illuminate\Support\Facades\Storage;
 
 class BarterController extends Controller
 {
@@ -38,7 +39,6 @@ class BarterController extends Controller
     //     ]);
     // }
 
-
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -47,14 +47,17 @@ class BarterController extends Controller
             'description'  => 'nullable|string',
             'location'     => 'nullable|string',
             'image'        => 'nullable|image|max:2048',
-            'status'       => 'in:pending,accepted,rejected'
         ]);
 
         if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('barters', 'public');
+            $path = $request->file('image')->store('barters', 'public');
+            $validated['image'] = Storage::url($path);
         }
 
-        $barter = Barter::create(array_merge($validated, ['user_id' => Auth::id()]));
+        $barter = Barter::create(array_merge($validated, [
+            'user_id' => Auth::id(),
+            'status'  => 'pending' // ثابت عند الإنشاء
+        ]));
 
         return response()->json([
             'message' => ApiMessage::BARTER_CREATED->value,
@@ -67,16 +70,22 @@ class BarterController extends Controller
         $barter = Barter::where('user_id', Auth::id())->findOrFail($id);
 
         $validated = $request->validate([
-            'offer_item'   => 'string|max:255',
-            'request_item' => 'string|max:255',
+            'offer_item'   => 'sometimes|string|max:255',
+            'request_item' => 'sometimes|string|max:255',
             'description'  => 'nullable|string',
             'location'     => 'nullable|string',
             'image'        => 'nullable|image|max:2048',
-            'status'       => 'in:pending,accepted,rejected'
         ]);
 
         if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('barters', 'public');
+            // حذف الصورة القديمة لو موجودة
+            if ($barter->image) {
+                $oldPath = str_replace('/storage/', '', $barter->image);
+                Storage::disk('public')->delete($oldPath);
+            }
+
+            $path = $request->file('image')->store('barters', 'public');
+            $validated['image'] = Storage::url($path);
         }
 
         $barter->update($validated);
@@ -86,7 +95,6 @@ class BarterController extends Controller
             'barter'  => $barter
         ]);
     }
-
     public function destroy($id)
     {
         $barter = Barter::where('user_id', Auth::id())->findOrFail($id);
