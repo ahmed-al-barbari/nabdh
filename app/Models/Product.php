@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use Auth;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Storage;
 
 class Product extends Model
@@ -14,7 +16,7 @@ class Product extends Model
 
 
     protected $fillable = ['store_id', 'product_id', 'description', 'price', 'quantity', 'image'];
-    protected $appends = ['name'];
+    protected $appends = ['name', 'is_favorite'];
 
     public function store()
     {
@@ -33,6 +35,26 @@ class Product extends Model
     public function mainProduct(): BelongsTo
     {
         return $this->belongsTo(MainProduct::class, 'product_id');
+    }
+
+    public function offer(): HasOne
+    {
+        return $this->hasOne(Offer::class, 'product_id');
+    }
+
+    public function activeOffer(): HasOne
+    {
+        return $this->offer()->where('active', true)
+            ->whereDate('start_date', '<=', now())
+            ->whereDate('end_date', '>=', now());
+    }
+
+    public function getIsFavoriteAttribute()
+    {
+        if (Auth::check()) {
+            return $this->favorites()->where('user_id', Auth::id())->exists();
+        }
+        return false;
     }
 
     protected function image(): Attribute

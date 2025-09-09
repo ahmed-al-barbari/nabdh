@@ -49,11 +49,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+    Route::get('/product/last-products', [ProductController::class, 'lastProduct']);
+    Route::get('/product/has-offer', [ProductController::class, 'productHasOffer']);
+    Route::get('/product/view/{id}', [ProductController::class, 'viewProduct']);
 
 
-
-
-    Route::middleware('auth:sanctum')->get('/user', function (Request $request) {});
+    Route::middleware('auth:sanctum')->get('/user', function (Request $request) { });
 
 
     Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(function () {

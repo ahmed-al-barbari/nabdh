@@ -42,9 +42,7 @@ class ProductController extends Controller
         //         ];
         //     });
 
-
-
-        $products = Auth::user()->store?->products()->with(['store:id,name,address'])->get() ?? collect();
+        $products = Auth::user()->store?->products()->with(['store:id,name,address', 'activeOffer'])->paginate() ?? collect();
 
         return response()->json([
             'message' => ApiMessage::PRODUCTS_FETCHED->value,
@@ -159,4 +157,24 @@ class ProductController extends Controller
             'products' => $products
         ]);
     }
+
+    public function viewProduct($id)
+    {
+        $product = Product::findOrFail($id)->first();
+        return response()->json([
+            'message' => ApiMessage::PRODUCT_FETCHED->value,
+            'product' => $product,
+        ]);
+    }
+    public function lastProduct()
+    {
+        return Product::with('activeOffer')->latest()->paginate();
+    }
+
+    public function productHasOffer()
+    {
+        return Product::with('activeOffer')->whereHas('activeOffer')->paginate();
+    }
+
+
 }

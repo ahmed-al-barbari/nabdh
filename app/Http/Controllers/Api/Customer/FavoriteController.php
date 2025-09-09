@@ -15,12 +15,12 @@ class FavoriteController extends Controller
      */
     public function index()
     {
-        $favorites = Favorite::with('product')
+        $favorites = Favorite::with(['product', 'product.activeOffer'])
             ->where('user_id', Auth::id())
-            ->get();
+            ->paginate();
 
         return response()->json([
-            'message'   => ApiMessage::FAVORITES_FETCHED->value,
+            'message' => ApiMessage::FAVORITES_FETCHED->value,
             'favorites' => $favorites
         ]);
     }
@@ -31,12 +31,12 @@ class FavoriteController extends Controller
     public function store($productId)
     {
         $favorite = Favorite::firstOrCreate([
-            'user_id'    => Auth::id(),
+            'user_id' => Auth::id(),
             'product_id' => $productId,
         ]);
 
         return response()->json([
-            'message'  => ApiMessage::FAVORITE_ADDED->value,
+            'message' => ApiMessage::FAVORITE_ADDED->value,
             'favorite' => $favorite
         ], 201);
     }
