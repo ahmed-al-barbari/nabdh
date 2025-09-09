@@ -16,7 +16,7 @@ class StoreController extends Controller
 
         return response()->json([
             'message' => ApiMessage::STORES_FETCHED->value,
-            'stores'  => $stores
+            'stores' => $stores
         ]);
     }
 
@@ -30,35 +30,35 @@ class StoreController extends Controller
             if ($existingStore) {
                 return response()->json([
                     'message' => ApiMessage::STORE_ALREADY_EXISTS->value,
-                    'store'   => $existingStore
+                    'store' => $existingStore
                 ], 403);
             }
         }
 
         // Validate المدخلات
         $validated = $request->validate([
-            'name'      => 'required|string|max:255',
-            'address'   => 'required|string|max:255',
-            'image'     => 'nullable|string',
-            'latitude'  => 'nullable|numeric',
+            'name' => 'required|string|max:255',
+            'address' => 'required|string|max:255',
+            'image' => 'nullable|string',
+            'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
         ]);
 
         // إنشاء المتجر
         $store = Store::create([
-            'user_id'   => $user->id,
-            'name'      => $validated['name'],
-            'address'   => $validated['address'],
-            'image'     => $validated['image'] ?? null,
-            'latitude'  => $validated['latitude'] ?? null,
+            'user_id' => $user->id,
+            'name' => $validated['name'],
+            'address' => $validated['address'],
+            'image' => $validated['image'] ?? null,
+            'latitude' => $validated['latitude'] ?? null,
             'longitude' => $validated['longitude'] ?? null,
             // حالة المتجر: إذا أدمن يكون active مباشرة، وإذا تاجر يكون pending
-            'status'    => $user->role === 'admin' ? 'active' : 'pending',
+            'status' => $user->role === 'admin' ? 'active' : 'pending',
         ]);
 
         return response()->json([
             'message' => ApiMessage::STORE_CREATED->value,
-            'store'   => $store
+            'store' => $store
         ], 201);
     }
 
@@ -68,12 +68,12 @@ class StoreController extends Controller
         $user = Auth::user();
 
         $validated = $request->validate([
-            'name'      => 'sometimes|string|max:255',
-            'address'   => 'sometimes|string|max:255',
-            'image'     => 'nullable|string',
-            'latitude'  => 'nullable|numeric',
+            'name' => 'sometimes|string|max:255',
+            'address' => 'sometimes|string|max:255',
+            'image' => 'nullable|string',
+            'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
-            'status'    => 'in:active,inactive,pending',
+            // 'status'    => 'in:active,inactive,pending',
         ]);
 
         // إذا المستخدم تاجر، لا يسمح له بتغيير الحالة
@@ -81,18 +81,18 @@ class StoreController extends Controller
             unset($validated['status']);
         }
 
-        // إذا المستخدم تاجر، تأكد أنه صاحب المتجر
-        if ($user->role === 'merchant' && $store->user_id !== $user->id) {
-            return response()->json([
-                'message' => ApiMessage::UNAUTHORIZED->value
-            ], 403);
-        }
+        // // إذا المستخدم تاجر، تأكد أنه صاحب المتجر
+        // if ($user->role === 'merchant' && $store->user_id !== $user->id) {
+        //     return response()->json([
+        //         'message' => ApiMessage::UNAUTHORIZED->value
+        //     ], 403);
+        // }
 
         $store->update($validated);
 
         return response()->json([
             'message' => ApiMessage::STORE_UPDATED->value,
-            'store'   => $store
+            'store' => $store
         ]);
     }
 
@@ -104,6 +104,25 @@ class StoreController extends Controller
 
         return response()->json([
             'message' => ApiMessage::STORE_DELETED->value
+        ]);
+    }
+
+    public function updateGeneralSettingOrCreate(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'sometimes|string|max:255',
+            'address' => 'sometimes|string|max:255',
+            'image' => 'sometimes|required|image',
+        ]);
+
+        $user = Auth::user();
+        if ($request->hasFile('image')) {
+            $validated['image'] = $request->file(key: 'image')->store('stores', 'public');
+        }
+        $user->store()->updateOrCreate([], $validated);
+        return response()->json([
+            'message' => ApiMessage::STORE_UPDATED->value,
+            'store' => $user->store
         ]);
     }
 }

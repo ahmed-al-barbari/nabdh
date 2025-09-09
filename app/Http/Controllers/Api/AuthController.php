@@ -39,7 +39,7 @@ class AuthController extends Controller
             'email' => false,
             'whats' => false,
         ];
-                $user = User::create($validated);
+        $user = User::create($validated);
 
         Auth::guard('web')->login($user);
 
@@ -47,7 +47,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => ApiMessage::USER_CREATED->value,
-            'user' => $user,
+            'user' => $user->load('store'),
         ], 201);
     }
 
@@ -101,5 +101,21 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
 
         return response()->json([], 204);
+    }
+
+    public function deleteAccount(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required|string'
+        ]);
+        if (!Hash::check($request->current_password, Auth::user()->password)) {
+            return response()->json(['message' => 'Current password is incorrect'], 400);
+        }
+        Auth::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        Auth::user()->delete();
+        return response()->json([], 204);
+
     }
 }

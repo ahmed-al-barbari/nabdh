@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Api\Customer\SearchController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
@@ -42,20 +43,27 @@ Route::post('/reset-password', [ResetPasswordController::class, 'reset']);
 Route::get('/categories', [CategoryController::class, 'getCategories']);
 Route::get('/products', [ProductController::class, 'getProducts']);
 
+Route::get('/product/last-products', [ProductController::class, 'lastProduct']);
+Route::get('/product/has-offer', [ProductController::class, 'productHasOffer']);
+Route::get('/product/view/{id}', [ProductController::class, 'viewProduct']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/auth/user', function () {
-        return request()->user();
+        return request()->user()->load('store');
     });
 
 
     Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
-    Route::get('/product/last-products', [ProductController::class, 'lastProduct']);
-    Route::get('/product/has-offer', [ProductController::class, 'productHasOffer']);
-    Route::get('/product/view/{id}', [ProductController::class, 'viewProduct']);
+    Route::delete('user/delete-account', [AuthController::class, 'deleteAccount'])->middleware('auth:sanctum');
 
 
-    Route::middleware('auth:sanctum')->get('/user', function (Request $request) { });
 
+    Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+
+    });
+
+    Route::put('/user', [UserController::class, 'update'])->middleware('auth:sanctum');
+
+    Route::put('/merchant/store', [StoreController::class, 'updateGeneralSettingOrCreate'])->middleware('auth:sanctum');
 
     Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index']);

@@ -22,6 +22,9 @@ class User extends Authenticatable
         'address',
         'role',
         'status',
+        'theme',
+        'currency',
+        'recive_notification',
         // 'notification_method',
         'notification_methods',
     ];
