@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Api\Customer\SearchController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -45,7 +46,7 @@ Route::get('/products', [ProductController::class, 'getProducts']);
 
 Route::get('/product/last-products', [ProductController::class, 'lastProduct']);
 Route::get('/product/has-offer', [ProductController::class, 'productHasOffer']);
-Route::get('/product/view/{id}', [ProductController::class, 'viewProduct']);
+Route::get('/product/view/{product}', [ProductController::class, 'viewProduct']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/auth/user', function () {
         return request()->user()->load('store');
@@ -63,6 +64,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::put('/user', [UserController::class, 'update'])->middleware('auth:sanctum');
 
+    Route::post('/products/{product}/report', [ReportController::class, 'store'])->middleware('auth:sanctum');
+
     Route::put('/merchant/store', [StoreController::class, 'updateGeneralSettingOrCreate'])->middleware('auth:sanctum');
 
     Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
@@ -79,8 +82,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/users/{id}', [AdminController::class, 'update']);
         Route::patch('/users/{id}/status', [AdminController::class, 'updateStatus']);
         Route::delete('/users/{id}', [AdminController::class, 'destroy']);
+        Route::get('/reports', [ReportController::class, 'index']);
+        Route::put('/products/{product}/report/make-reviewed', [ReportController::class, 'update']);
     });
-
 
     Route::prefix('merchant')->middleware(['auth:sanctum', 'role:merchant'])->group(function () {
 

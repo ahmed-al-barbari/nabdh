@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Storage;
 
@@ -49,6 +50,11 @@ class Product extends Model
             ->whereDate('end_date', '>=', now());
     }
 
+    public function report(): HasOne
+    {
+        return $this->hasOne(Report::class);
+    }
+
     public function getIsFavoriteAttribute()
     {
         if (Auth::check()) {
@@ -65,6 +71,13 @@ class Product extends Model
             set: fn($value) => $value instanceof \Illuminate\Http\UploadedFile
             ? $value->store('products', 'public')
             : $value
+        );
+    }
+
+    protected function isReported(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => $this->report?->users()->where('user_id', Auth::id())->exists() ?? false,
         );
     }
     protected function name(): Attribute

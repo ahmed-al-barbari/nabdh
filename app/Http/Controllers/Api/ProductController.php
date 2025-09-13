@@ -158,12 +158,13 @@ class ProductController extends Controller
         ]);
     }
 
-    public function viewProduct($id)
+    public function viewProduct(Product $product)
     {
-        $product = Product::findOrFail($id)->first();
+        info('hi' . $product);
+
         return response()->json([
             'message' => ApiMessage::PRODUCT_FETCHED->value,
-            'product' => $product,
+            'product' => $product->append(['is_reported']),
         ]);
     }
     public function lastProduct()
