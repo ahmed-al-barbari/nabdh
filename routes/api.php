@@ -112,6 +112,7 @@ Route::middleware('auth:sanctum')->group(function () {
         // إرسال رسالة جديدة في مقايضة معينة
         Route::post('/barters/{barter_id}/messages', [BarterMessageController::class, 'store']);
         Route::post('/barters', [BarterController::class, 'store']);
+        Route::put('/barters/{id}', [BarterController::class, 'update']);
         //المفضلات
         Route::get('/favorites', [FavoriteController::class, 'index']);
         Route::post('/favorites/{productId}', [FavoriteController::class, 'store']);
@@ -122,8 +123,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/user/preferences', [CustomerController::class, 'updatePreferences']);
     Route::patch('/user/profile', [CustomerController::class, 'updateProfile']);
 
-    Route::get('/barters', [BarterController::class, 'publicIndex']);
+    // Route::get('/barters', [BarterController::class, 'publicIndex']);
+    Route::get('/barters', [BarterController::class, 'index']);
     Route::get('/barters/{id}', [BarterController::class, 'show']);
+    Route::delete('/barters/{id}', [BarterController::class, 'delete']);
     Broadcast::routes(['middleware' => ['auth:sanctum']]);
     Route::middleware(['auth:sanctum'])->group(function () {
         // بدء/جلب محادثة 1:1

@@ -29,24 +29,39 @@ class BarterController extends Controller
         ]);
     }
 
-    // public function index()
-    // {
-    //     $barters = Barter::where('user_id', Auth::id())->paginate(10);
+    public function index()
+    {
+        $barters = Barter::with([
+            'user' => function ($query) {
+                $query->withCount([
+                    'barters as batar_count' => function ($q) {
+                        $q->where('status', 'completed');
+                    }
+                ]);
+            }
+        ])
+            ->where('status', 'active')
+            ->paginate(10);
 
-    //     return response()->json([
-    //         'message' => ApiMessage::BARTER_FETCHED->value,
-    //         'barters' => $barters
-    //     ]);
-    // }
+        return response()->json([
+            'message' => ApiMessage::BARTER_FETCHED->value,
+            'barters' => $barters
+        ]);
+    }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'offer_item'   => 'required|string|max:255',
+            'offer_item' => 'required|string|max:255',
             'request_item' => 'required|string|max:255',
-            'description'  => 'nullable|string',
-            'location'     => 'nullable|string',
-            'image'        => 'nullable|image|max:2048',
+            'description' => 'nullable|string',
+            'location' => 'nullable|string',
+            'image' => 'nullable|image',
+            'quantity' => 'nullable|string|max:255',
+            'contact_method' => 'nullable|string|max:255',
+            'availability' => 'nullable|string|max:255',
+            'exchange_preferences' => 'nullable|string|max:255',
+            'offer_status' => 'nullable|string|max:255',
         ]);
 
         if ($request->hasFile('image')) {
@@ -56,12 +71,12 @@ class BarterController extends Controller
 
         $barter = Barter::create(array_merge($validated, [
             'user_id' => Auth::id(),
-            'status'  => 'pending' // ثابت عند الإنشاء
+            'status' => 'active' // ثابت عند الإنشاء
         ]));
 
         return response()->json([
             'message' => ApiMessage::BARTER_CREATED->value,
-            'barter'  => $barter
+            'barter' => $barter
         ]);
     }
 
@@ -70,11 +85,16 @@ class BarterController extends Controller
         $barter = Barter::where('user_id', Auth::id())->findOrFail($id);
 
         $validated = $request->validate([
-            'offer_item'   => 'sometimes|string|max:255',
-            'request_item' => 'sometimes|string|max:255',
-            'description'  => 'nullable|string',
-            'location'     => 'nullable|string',
-            'image'        => 'nullable|image|max:2048',
+            'offer_item' => 'required|string|max:255',
+            'request_item' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'location' => 'nullable|string',
+            'image' => 'nullable|image',
+            'quantity' => 'nullable|string|max:255',
+            'contact_method' => 'nullable|string|max:255',
+            'availability' => 'nullable|string|max:255',
+            'exchange_preferences' => 'nullable|string|max:255',
+            'offer_status' => 'nullable|string|max:255',
         ]);
 
         if ($request->hasFile('image')) {
@@ -92,7 +112,7 @@ class BarterController extends Controller
 
         return response()->json([
             'message' => ApiMessage::BARTER_UPDATED->value,
-            'barter'  => $barter
+            'barter' => $barter
         ]);
     }
     public function destroy($id)

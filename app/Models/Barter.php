@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\Storage;
 
 class Barter extends Model
 {
@@ -11,10 +13,17 @@ class Barter extends Model
 
     protected $fillable = [
         'user_id',
-        'title',
         'description',
         'image',
         'status',
+        'offer_item',
+        'request_item',
+        'location',
+        'contact_method',
+        'availability',
+        'offer_status',
+        'quantity',
+        'exchange_preferences',
     ];
 
     // 🔗 العلاقة مع المستخدم
@@ -38,5 +47,15 @@ class Barter extends Model
     public function scopeAccepted($query)
     {
         return $query->where('status', 'accepted');
+    }
+    protected function image(): Attribute
+    {
+        return Attribute::make(
+            get: fn($value) => $value ? asset($value) : null,
+
+            set: fn($value) => $value instanceof \Illuminate\Http\UploadedFile
+            ? $value->store('products', 'public')
+            : $value
+        );
     }
 }
