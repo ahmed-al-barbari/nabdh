@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 
 class Barter extends Model
@@ -24,6 +26,7 @@ class Barter extends Model
         'offer_status',
         'quantity',
         'exchange_preferences',
+        'accepted_by',
     ];
 
     // 🔗 العلاقة مع المستخدم
@@ -31,6 +34,17 @@ class Barter extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function responses(): HasMany
+    {
+        return $this->hasMany(BarterResponse::class);
+    }
+
+    public function acceptedUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'accepted_by');
+    }
+
 
     // 🔗 لو بدك تضيف عروض تبادل متعددة في جدول وسيط
     public function offers()

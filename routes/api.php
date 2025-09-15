@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Api\Customer\SearchController;
+use App\Http\Controllers\CityController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
@@ -39,6 +40,8 @@ use Illuminate\Support\Facades\Broadcast;
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 
+Route::get('/search/stores/{product}', [SearchController::class, 'searchStores']);
+
 Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink']);
 Route::post('/reset-password', [ResetPasswordController::class, 'reset']);
 Route::get('/categories', [CategoryController::class, 'getCategories']);
@@ -49,7 +52,7 @@ Route::get('/product/has-offer', [ProductController::class, 'productHasOffer']);
 Route::get('/product/view/{product}', [ProductController::class, 'viewProduct']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/auth/user', function () {
-        return request()->user()->load('store');
+        return request()->user()->load(['store', 'city']);
     });
 
 
@@ -57,19 +60,22 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('user/delete-account', [AuthController::class, 'deleteAccount'])->middleware('auth:sanctum');
 
 
+    Route::put('/barters/{barter}/mark-as-completed', [BarterController::class, 'markAsCompeleted'])->middleware('auth:sanctum');
+    Route::post('/barters/{barter}/respond', [BarterController::class, 'respond'])->middleware('auth:sanctum');
+    Route::post('/barters/{barter}/respond/{response}', [BarterController::class, 'acceptResponse'])->middleware('auth:sanctum');
 
-    Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-
-    });
-
+    Route::get('/cities', [CityController::class, 'index']);
+    Route::get('/cities/distances', [CityController::class, 'getDistances']);
     Route::put('/user', [UserController::class, 'update'])->middleware('auth:sanctum');
 
-    Route::post('/products/{product}/report', [ReportController::class, 'store'])->middleware('auth:sanctum');
+    // Route::post('/products/{product}/report', [ReportController::class, 'store'])->middleware('auth:sanctum');
 
     Route::put('/merchant/store', [StoreController::class, 'updateGeneralSettingOrCreate'])->middleware('auth:sanctum');
 
     Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index']);
+        Route::get('/stores', [\App\Http\Controllers\Admin\StoreController::class, 'index']);
+        Route::put('/stores/{store}', [\App\Http\Controllers\Admin\StoreController::class, 'update']);
         // إدارة الأصناف (Categories)
         Route::apiResource('categories', CategoryController::class)->except(['show']);
 
@@ -121,7 +127,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/favorites', [FavoriteController::class, 'index']);
         Route::post('/favorites/{productId}', [FavoriteController::class, 'store']);
         Route::delete('/favorites/{productId}', [FavoriteController::class, 'destroy']);
-        Route::get('/search/stores', [SearchController::class, 'searchStores']);
+
         Route::patch('/user/profile', [CustomerController::class, 'updateProfile']);
     });
     Route::patch('/user/preferences', [CustomerController::class, 'updatePreferences']);
@@ -145,5 +151,11 @@ Route::middleware('auth:sanctum')->prefix('chat')->group(function () {
     Route::get('/conversations', [ConversationController::class, 'index']);
     Route::post('/conversations', [ConversationController::class, 'start']);
     Route::post('/messages/{id}/read', [MessageController::class, 'markAsRead']);
+    Route::post('/messages', [MessageController::class, 'sendMessage']);
+    Route::get('/conversations/{conversation}/get-messages', [MessageController::class, 'conversationMessages']);
+    Route::get('/conversations/get-messages/{user}', [MessageController::class, 'index']);
 
 });
+
+
+// Broadcast::routes(['middleware' => ['auth:sanctum']]);

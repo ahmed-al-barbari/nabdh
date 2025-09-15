@@ -15,13 +15,38 @@ class ConversationController extends Controller
 
         $conversations = Conversation::where('user_one_id', $userId)
             ->orWhere('user_two_id', $userId)
-            ->with(['userOne', 'userTwo']) // لو عندك علاقات معرفة بالمودل
+            ->with([
+                'userOne',
+                'userTwo',
+                'messages_conversation' => function ($q) {
+                    $q->latest()->limit(1);
+                },
+                'messages_conversationUnread' => function ($q) use ($userId) {
+                    $q->where('is_read', false)
+                        ->where('sender_id', '!=', $userId);
+                }
+            ])
             ->latest()
-            ->get();
+            ->get()
+            ->map(function ($conversation) use ($userId) {
+                $lastMessage = $conversation->messages_conversation->first();
+                return [
+                    'id' => $conversation->id,
+                    'user_one' => $conversation->userOne,
+                    'user_two' => $conversation->userTwo,
+                    'last_message_body' => $lastMessage?->body,
+                    'last_message_date' => $lastMessage?->created_at,
+                    'last_message_sender_id' => $lastMessage?->sender_id,
+                    'unread_count' => $conversation->messages_conversationUnread->count(),
+                ];
+            });
+
+        $conversationsWithUnread = $conversations->filter(fn($c) => $c['unread_count'] > 0)->count();
 
         return response()->json([
             'message' => 'Conversations fetched successfully',
-            'conversations' => $conversations
+            'conversations' => $conversations,
+            'conversations_with_unread_count' => $conversationsWithUnread,
         ]);
     }
 }

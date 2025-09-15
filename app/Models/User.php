@@ -27,6 +27,8 @@ class User extends Authenticatable
         'recive_notification',
         // 'notification_method',
         'notification_methods',
+        'city_id',
+        'share_location'
     ];
     public function favorites()
     {
@@ -62,5 +64,9 @@ class User extends Authenticatable
     public function barters()
     {
         return $this->hasMany(Barter::class);
+    }
+    public function city()
+    {
+        return $this->belongsTo(City::class);
     }
 }

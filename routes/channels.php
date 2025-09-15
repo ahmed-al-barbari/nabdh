@@ -20,7 +20,15 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 
 Broadcast::channel('conversation.{conversationId}', function ($user, $conversationId) {
     $conversation = Conversation::find($conversationId);
-    if (!$conversation) return false;
+    if (!$conversation)
+        return false;
     return $conversation->includesUser($user->id);
 });
 
+Broadcast::channel('private-conversation.{conversationId}', function ($user, $conversationId) {
+    return Conversation::where('id', $conversationId)
+        ->where(function ($q) use ($user) {
+            $q->where('user_one_id', $user->id)
+                ->orWhere('user_two_id', $user->id);
+        })->exists();
+});

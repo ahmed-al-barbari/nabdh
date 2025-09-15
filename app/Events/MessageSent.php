@@ -12,26 +12,29 @@ class MessageSent implements ShouldBroadcastNow
 {
     use Dispatchable, SerializesModels;
 
-    public function __construct(public MessageConversation $message) {}
+    public function __construct(public MessageConversation $message)
+    {
+        $message->load('sender');
+    }
 
     public function broadcastOn()
     {
-        return new PrivateChannel('conversation.' . $this->message->conversation_id);
+        return new PrivateChannel("private-conversation.{$this->message->conversation_id}");
     }
 
     public function broadcastAs()
     {
-        return 'message.sent';
+        return "MessageSent";
     }
 
     public function broadcastWith()
     {
         return [
-            'id'             => $this->message->id,
+            'id' => $this->message->id,
             'conversationId' => $this->message->conversation_id,
-            'senderId'       => $this->message->sender_id,
-            'body'           => $this->message->body,
-            'createdAt'      => $this->message->created_at->toISOString(),
+            'senderId' => $this->message->sender_id,
+            'body' => $this->message->body,
+            'createdAt' => $this->message->created_at->toISOString(),
         ];
     }
 }

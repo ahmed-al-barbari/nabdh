@@ -22,7 +22,13 @@ class Conversation extends Model
     {
         return $this->hasMany(MessageConversation::class);
     }
-    
+
+    public function messages_conversationUnread()
+    {
+        return $this->hasMany(MessageConversation::class, 'conversation_id')
+            ->where('is_read', false);
+    }
+
     public function scopeBetween($query, $user1, $user2)
     {
         $ids = [$user1, $user2];

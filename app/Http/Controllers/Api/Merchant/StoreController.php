@@ -113,6 +113,7 @@ class StoreController extends Controller
             'name' => 'sometimes|string|max:255',
             'address' => 'sometimes|string|max:255',
             'image' => 'sometimes|required|image',
+            'city_id' => 'sometimes|exists:cities,id',
         ]);
 
         $user = Auth::user();

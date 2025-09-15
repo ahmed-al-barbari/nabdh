@@ -17,7 +17,7 @@ class Product extends Model
 
 
     protected $fillable = ['store_id', 'product_id', 'description', 'price', 'quantity', 'image'];
-    protected $appends = ['name', 'is_favorite'];
+    protected $appends = ['name', 'is_favorite', 'recent_prices'];
 
     public function store()
     {
@@ -84,6 +84,15 @@ class Product extends Model
     {
         return Attribute::make(
             get: fn() => $this->mainProduct->name,
+        );
+    }
+    protected function recentPrices(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                return Product::where('product_id', $this->product_id)->get()
+                    ->pluck('price');
+            },
         );
     }
 }

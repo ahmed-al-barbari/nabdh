@@ -68,7 +68,6 @@ class AuthController extends Controller
         $validated = $validator->validate();
         $user = User::where('email', $request->email)->
             orWhere('phone', $request->phone)->first();
-        info($user);
 
         if (!$user) {
             return response()->json([
@@ -87,7 +86,7 @@ class AuthController extends Controller
         // auth()-login($user);
         return response()->json([
             'message' => ApiMessage::LOGIN_SUCCESS->value,
-            'user' => $user,
+            'user' => $user->load(['store', 'city']),
             // 'access_token' => $token,
             // 'token_type' => 'Bearer'
         ]);

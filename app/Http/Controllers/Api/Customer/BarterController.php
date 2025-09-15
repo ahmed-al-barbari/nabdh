@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Customer;
 
 use App\Http\Controllers\Controller;
 use App\Models\Barter;
+use App\Models\BarterResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Enums\ApiMessage;
@@ -31,6 +32,8 @@ class BarterController extends Controller
 
     public function index()
     {
+        $user = auth()->user();
+
         $barters = Barter::with([
             'user' => function ($query) {
                 $query->withCount([
@@ -38,16 +41,48 @@ class BarterController extends Controller
                         $q->where('status', 'completed');
                     }
                 ]);
+            },
+            'responses' => function ($query) use ($user) {
+                $query->when($user, function ($q) use ($user) {
+                    $q->where('user_id', $user->id);
+                });
             }
+            ,
+            'acceptedUser'
         ])
             ->where('status', 'active')
-            ->paginate(10);
+            ->where(function ($q) use ($user) {
+                $q->whereNull('accepted_by')
+                    ->orWhere(function ($q2) use ($user) {
+                        $q2->whereNotNull('accepted_by')
+                            ->where(function ($q3) use ($user) {
+                                $q3->where('user_id', $user->id)
+                                    ->orWhere('accepted_by', $user->id);
+                            });
+                    });
+            })
+            ->paginate();
+
+        $bartersTransformed = $barters->getCollection()->map(function ($barter) use ($user) {
+            if ($barter->user_id === $user->id) {
+                $barter->sentResponses = $barter->responses()->with('user')->get();
+                $barter->myResponse = null;
+            } else {
+                $barter->myResponse = $barter->responses()->where('user_id', $user->id)->first();
+                $barter->sentResponses = null;
+            }
+
+            return $barter;
+        });
+
+        $barters->setCollection($bartersTransformed);
 
         return response()->json([
             'message' => ApiMessage::BARTER_FETCHED->value,
             'barters' => $barters
         ]);
     }
+
 
     public function store(Request $request)
     {
@@ -124,4 +159,68 @@ class BarterController extends Controller
             'message' => ApiMessage::BARTER_DELETED->value
         ]);
     }
+
+    public function acceptResponse(Barter $barter, BarterResponse $response)
+    {
+        if ($barter->accepted_user_id) {
+            return response()->json([
+                'message' => 'تم قبول مستخدم بالفعل لهذه المبادلة.'
+            ], 400);
+        }
+
+        $barter->update([
+            'accepted_by' => $response->user_id
+        ]);
+
+        $response->update(['status' => 'accepted']);
+
+        $barter->responses()->where('id', '!=', $response->id)
+            ->update(['status' => 'rejected']);
+
+        return response()->json(['message' => 'تم قبول المستخدم بنجاح.']);
+    }
+
+    public function respond(Request $request, Barter $barter)
+    {
+        $user = Auth::user();
+
+        if ($barter->user_id === $user->id) {
+            return response()->json([
+                'message' => 'لا يمكنك الرد على مبادلتك الخاصة.'
+            ], 403);
+        }
+
+        $existingResponse = BarterResponse::where('barter_id', $barter->id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if ($existingResponse) {
+            return response()->json([
+                'message' => 'لقد قدمت طلبًا بالفعل.'
+            ], 400);
+        }
+
+        $response = BarterResponse::create([
+            'barter_id' => $barter->id,
+            'user_id' => $user->id,
+            'status' => 'pending'
+        ]);
+
+        return response()->json([
+            'message' => 'تم إرسال طلبك بنجاح.',
+            'response' => $response
+        ]);
+    }
+
+    public function markAsCompeleted(Barter $barter)
+    {
+
+        $barter->update([
+            'status' => 'completed'
+        ]);
+        return response()->json([
+            'message' => 'completed',
+        ]);
+    }
+
 }

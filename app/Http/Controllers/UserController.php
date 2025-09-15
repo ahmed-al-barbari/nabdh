@@ -21,6 +21,8 @@ class UserController extends Controller
             'theme' => 'sometimes|string|in:light,dark',
             'currency' => 'sometimes|string|in:USD,ILS',
             'recive_notification' => 'sometimes|in:0,1',
+            'city_id' => 'sometimes|exists:cities,id',
+            'share_location' => 'sometimes|in:0,1'
         ]);
 
         if (isset($validated['password'])) {
