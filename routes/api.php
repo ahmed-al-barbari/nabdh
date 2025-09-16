@@ -50,10 +50,11 @@ Route::get('/products', [ProductController::class, 'getProducts']);
 Route::get('/product/last-products', [ProductController::class, 'lastProduct']);
 Route::get('/product/has-offer', [ProductController::class, 'productHasOffer']);
 Route::get('/product/view/{product}', [ProductController::class, 'viewProduct']);
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/auth/user', function () {
+Route::get('/auth/user', function () {
+    if (request()->user())
         return request()->user()->load(['store', 'city']);
-    });
+});
+Route::middleware('auth:sanctum')->group(function () {
 
 
     Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
@@ -151,7 +152,7 @@ Route::middleware('auth:sanctum')->prefix('chat')->group(function () {
     Route::get('/conversations', [ConversationController::class, 'index']);
     Route::post('/conversations', [ConversationController::class, 'start']);
     Route::post('/messages/{id}/read', [MessageController::class, 'markAsRead']);
-    Route::post('/messages', [MessageController::class, 'sendMessage']);
+    Route::post('/messages/{conversation}', [MessageController::class, 'sendMessage']);
     Route::get('/conversations/{conversation}/get-messages', [MessageController::class, 'conversationMessages']);
     Route::get('/conversations/get-messages/{user}', [MessageController::class, 'index']);
 

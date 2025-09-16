@@ -18,9 +18,7 @@ class ConversationController extends Controller
             ->with([
                 'userOne',
                 'userTwo',
-                'messages_conversation' => function ($q) {
-                    $q->latest()->limit(1);
-                },
+                'messages_conversation',
                 'messages_conversationUnread' => function ($q) use ($userId) {
                     $q->where('is_read', false)
                         ->where('sender_id', '!=', $userId);

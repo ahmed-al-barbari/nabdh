@@ -11,7 +11,7 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('stores', function (Blueprint $table) {
-            $table->foreignId('city_id')->after('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('city_id')->nullable()->after('user_id')->constrained()->cascadeOnDelete();
         });
     }
 

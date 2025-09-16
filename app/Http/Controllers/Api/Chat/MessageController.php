@@ -75,30 +75,31 @@ class MessageController extends Controller
         ]);
     }
 
-    public function sendMessage(Request $request)
+    public function sendMessage(Request $request, Conversation $conversation)
     {
         $data = $request->validate([
             'receiver_id' => 'required|exists:users,id|different:' . Auth::id(),
             'content' => 'required|string',
         ]);
 
-        $ids = [Auth::id(), $data['receiver_id']];
-        sort($ids);
+        // $ids = [Auth::id(), $data['receiver_id']];
+        // // sort($ids);
 
-        // إما يرجع المحادثة أو ينشئ جديدة
-        $conversation = Conversation::where([
-            'user_one_id' => $ids[0],
-            'user_two_id' => $ids[1],
-        ])->orWhere([
-                    'user_one_id' => $ids[1],
-                    'user_two_id' => $ids[0],
-                ])->first();
-        if (!$conversation) {
-            $conversation = Conversation::create([
-                'user_one_id' => $ids[0],
-                'user_two_id' => $ids[1],
-            ]);
-        }
+        // // إما يرجع المحادثة أو ينشئ جديدة
+        // $conversation = Conversation::where(function ($q) use ($ids) {
+        //     $q->where('user_one_id', $ids[0])
+        //         ->where('user_two_id', $ids[1]);
+        // })->orWhere(function ($q) use ($ids) {
+        //     $q->where('user_one_id', $ids[1])
+        //         ->where('user_two_id', $ids[0]);
+        // })->first();
+
+        // if (!$conversation) {
+        //     $conversation = Conversation::create([
+        //         'user_one_id' => $ids[0],
+        //         'user_two_id' => $ids[1],
+        //     ]);
+        // }
 
         // إنشاء الرسالة
         $message = $conversation->messages_conversation()->create([
