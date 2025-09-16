@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api\Customer;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Notification;
+use App\Models\UserNotification;
 use App\Enums\ApiMessage;
 
 class NotificationController extends Controller
@@ -13,7 +13,7 @@ class NotificationController extends Controller
 
     public function index()
     {
-        $notifications = Notification::with(['product:id,name'])->where('user_id', Auth::id())->get();
+        $notifications = UserNotification::with(['product:id,name'])->where('user_id', Auth::id())->get();
 
         return response()->json([
             'message' => ApiMessage::NOTIFICATION_LIST->value,
@@ -32,7 +32,7 @@ class NotificationController extends Controller
 
         $user = Auth::user();
 
-        $notification = Notification::create([...$validated, 'user_id' => $user->id]);
+        $notification = UserNotification::create([...$validated, 'user_id' => $user->id]);
 
         return response()->json([
             'message' => ApiMessage::NOTIFICATION_CREATED->value,
@@ -42,7 +42,7 @@ class NotificationController extends Controller
 
     public function update(Request $request, $id)
     {
-        $notification = Notification::where('user_id', Auth::id())->findOrFail($id);
+        $notification = UserNotification::where('user_id', Auth::id())->findOrFail($id);
 
         $validated = $request->validate([
             'status' => 'nullable|string|in:active,inactive'
@@ -58,7 +58,7 @@ class NotificationController extends Controller
 
     public function destroy($id)
     {
-        $notification = Notification::where('user_id', Auth::id())->findOrFail($id);
+        $notification = UserNotification::where('user_id', Auth::id())->findOrFail($id);
         $notification->delete();
 
         return response()->json([
@@ -84,5 +84,14 @@ class NotificationController extends Controller
 
         return response()->json(['message' => 'Notification method updated successfully']);
 
+    }
+
+    public function activeNotifications()
+    {
+        $notifications = Auth::user()->notifications()->where('data->type', 'user_notification')->paginate();
+        return [
+            'notifications' => $notifications,
+            'unread_count' => 5,
+        ];
     }
 }

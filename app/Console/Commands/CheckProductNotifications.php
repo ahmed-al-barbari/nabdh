@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Models\Notification;
+use App\Models\UserNotification;
 use Illuminate\Support\Facades\Mail;
 
 class CheckProductNotifications extends Command
@@ -27,16 +27,16 @@ class CheckProductNotifications extends Command
      */
     public function handle()
     {
-        $notifications = Notification::where('is_triggered', false)->get();
+        $notifications = UserNotification::where('is_triggered', false)->get();
 
         foreach ($notifications as $notification) {
             if ($notification->product->price <= $notification->target_price) {
                 $notification->update(['is_triggered' => true]);
 
                 match ($notification->method) {
-                    'sms'      => $this->sendSms($notification->user->phone, "The product {$notification->product->name} reached your target price!"),
+                    'sms' => $this->sendSms($notification->user->phone, "The product {$notification->product->name} reached your target price!"),
                     'whatsapp' => $this->sendWhatsapp($notification->user->phone, "The product {$notification->product->name} reached your target price!"),
-                    'email'    => $this->sendEmail($notification->user->email, "The product {$notification->product->name} reached your target price!"),
+                    'email' => $this->sendEmail($notification->user->email, "The product {$notification->product->name} reached your target price!"),
                 };
             }
         }

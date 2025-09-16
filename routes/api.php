@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Api\Customer\SearchController;
 use App\Http\Controllers\CityController;
+use App\Http\Controllers\OtpController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
@@ -44,6 +45,8 @@ Route::get('/search/stores/{product}', [SearchController::class, 'searchStores']
 
 Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink']);
 Route::post('/reset-password', [ResetPasswordController::class, 'reset']);
+
+Route::post('/verify-otp', [OtpController::class, 'verify']);
 Route::get('/categories', [CategoryController::class, 'getCategories']);
 Route::get('/products', [ProductController::class, 'getProducts']);
 
@@ -55,6 +58,8 @@ Route::get('/auth/user', function () {
         return request()->user()->load(['store', 'city']);
 });
 Route::middleware('auth:sanctum')->group(function () {
+
+    Route::get('/active-notifications', [NotificationController::class, 'activeNotifications']);
 
 
     Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
@@ -69,7 +74,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/cities/distances', [CityController::class, 'getDistances']);
     Route::put('/user', [UserController::class, 'update'])->middleware('auth:sanctum');
 
-    // Route::post('/products/{product}/report', [ReportController::class, 'store'])->middleware('auth:sanctum');
+    Route::post('/products/{product}/report', [ReportController::class, 'store'])->middleware('auth:sanctum');
 
     Route::put('/merchant/store', [StoreController::class, 'updateGeneralSettingOrCreate'])->middleware('auth:sanctum');
 
@@ -157,6 +162,10 @@ Route::middleware('auth:sanctum')->prefix('chat')->group(function () {
     Route::get('/conversations/get-messages/{user}', [MessageController::class, 'index']);
 
 });
+
+// Route::get('/test',function() {
+
+// })
 
 
 // Broadcast::routes(['middleware' => ['auth:sanctum']]);

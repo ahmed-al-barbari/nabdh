@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\UserNotification;
 use App\Http\Controllers\Controller;
 use App\Models\MainProduct;
 use Illuminate\Http\Request;
@@ -74,7 +75,7 @@ class ProductController extends Controller
         // $validated['image'] = $request->file('image')->store('/products');
         $validated['store_id'] = $store->id;
         $product = Product::create($validated);
-
+        event(new UserNotification($product));
         return response()->json([
             'message' => ApiMessage::PRODUCT_CREATED->value,
             'product' => $product
@@ -86,7 +87,7 @@ class ProductController extends Controller
     {
         // $product = Product::with(['category.store'])->findOrFail($id);
 
-        $product = Auth::user()->store->products()->with(['store:id,name,address'])->where('id', $id)->first();
+        $product = Auth::user()->store->products()->with(['store:id,name,address,city_id','activeOffer'])->where('id', $id)->first();
         return response()->json([
             'message' => ApiMessage::PRODUCT_FETCHED->value,
             'product' => $product,
@@ -133,6 +134,8 @@ class ProductController extends Controller
 
         $product->update($validated);
 
+        event(new UserNotification($product));
+
         return response()->json([
             'message' => ApiMessage::PRODUCT_UPDATED->value,
             'product' => $product
@@ -160,21 +163,20 @@ class ProductController extends Controller
 
     public function viewProduct(Product $product)
     {
-        info('hi' . $product);
 
         return response()->json([
             'message' => ApiMessage::PRODUCT_FETCHED->value,
-            'product' => $product->append(['is_reported']),
+            'product' => $product->load(['store:id,name,address,city_id', 'activeOffer'])->append(['is_reported']),
         ]);
     }
     public function lastProduct()
     {
-        return Product::with('activeOffer')->latest()->paginate();
+        return Product::with(['store:id,name,address', 'activeOffer'])->latest()->paginate();
     }
 
     public function productHasOffer()
     {
-        return Product::with('activeOffer')->whereHas('activeOffer')->paginate();
+        return Product::with(['store:id,name,address', 'activeOffer'])->whereHas('activeOffer')->paginate();
     }
 
 

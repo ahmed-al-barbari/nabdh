@@ -10,7 +10,7 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::table('notifications', function (Blueprint $table) {
+        Schema::table('user_notifications', function (Blueprint $table) {
             $table->enum('type', ['lt', 'gt'])->default('lt')->after('status');
             $table->unsignedBigInteger('product_id')->after('user_id');
             $table->foreign('product_id')->references('id')->on('main_products')->onDelete('cascade');
@@ -22,7 +22,7 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::table('notifications', function (Blueprint $table) {
+        Schema::table('user_notifications', function (Blueprint $table) {
             $table->dropColumn(['type', 'product_id']);
         });
     }
