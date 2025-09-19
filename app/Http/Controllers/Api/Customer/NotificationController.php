@@ -91,7 +91,13 @@ class NotificationController extends Controller
         $notifications = Auth::user()->notifications()->where('data->type', 'user_notification')->paginate();
         return [
             'notifications' => $notifications,
-            'unread_count' => 5,
+            'unread_count' => $notifications->whereNull('read_at')->count(),
         ];
+    }
+
+    public function markAsRead()
+    {
+        Auth::user()->notifications?->markAsRead();
+        return response()->json([], 204);
     }
 }

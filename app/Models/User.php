@@ -3,6 +3,8 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Events\ChangeUserRoleEvent;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
@@ -35,6 +37,20 @@ class User extends Authenticatable
         return $this->hasMany(Favorite::class);
     }
 
+    protected static function booted()
+    {
+        static::updated(function (User $user) {
+            info('no role');
+            info($user->isDirty() == true ? 'true' : 'fasel');
+            if ($user->isDirty('role')) {
+                event(new ChangeUserRoleEvent($user));
+            }
+
+        });
+    }
+
+    protected $appends = ['barters_count', 'is_trusty'];
+
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -64,6 +80,30 @@ class User extends Authenticatable
     public function barters()
     {
         return $this->hasMany(Barter::class);
+    }
+
+    public function bartersCount(): Attribute
+    {
+        return Attribute::make(get: fn() => Barter::where('status', 'completed')->where(function ($q) {
+            $q->where('user_id', $this->id)
+                ->orWhere('accepted_by', $this->id);
+        })->count());
+    }
+    public function isTrusty(): Attribute
+    {
+        return Attribute::make(function () {
+            if ($this->role == 'admin')
+                return true;
+            if ($this->email && $this->phone && $this->share_location && $this->city_id) {
+                if ($this->role == 'customer')
+                    return true;
+                if ($this->role == 'merchant')
+                    if ($this->store->name && $this->store->address && $this->store->city_id && $this->store->image)
+                        return true;
+                return false;
+            }
+
+        });
     }
     public function city()
     {

@@ -25,6 +25,7 @@ use App\Http\Controllers\Api\Customer\FavoriteController;
 use App\Http\Controllers\Api\Customer\NotificationController;
 use App\Http\Controllers\Api\ProductController;
 use Illuminate\Support\Facades\Broadcast;
+use App\Http\Controllers\GoogleController;
 
 // use App\Http\Controllers\Api\Merchant\CategoryController;
 /*
@@ -40,6 +41,9 @@ use Illuminate\Support\Facades\Broadcast;
 
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
+
+Route::get('auth/google', [GoogleController::class, 'redirectToGoogle']);
+Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 
 Route::get('/search/stores/{product}', [SearchController::class, 'searchStores']);
 
@@ -60,6 +64,7 @@ Route::get('/auth/user', function () {
 Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/active-notifications', [NotificationController::class, 'activeNotifications']);
+    Route::patch('/notifications/mark-as-read', [NotificationController::class, 'markAsRead']);
 
 
     Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
@@ -82,6 +87,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index']);
         Route::get('/stores', [\App\Http\Controllers\Admin\StoreController::class, 'index']);
         Route::put('/stores/{store}', [\App\Http\Controllers\Admin\StoreController::class, 'update']);
+        Route::get('/notifications', [\App\Http\Controllers\Admin\NotificationController::class, 'index']);
         // إدارة الأصناف (Categories)
         Route::apiResource('categories', CategoryController::class)->except(['show']);
 

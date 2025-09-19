@@ -25,13 +25,15 @@ class SearchController extends Controller
 
         $perPage = 10;
         $page = $request->input('page', 1);
-
-        $stores = Store::with([
-            'city',
-            'products' => function ($q) use ($product) {
-                $q->where('product_id', $product->id);
-            }
-        ])
+        // $product->products()->with(['store'])->paginate();
+        $stores = Store::whereRelation('products', function ($q) use ($product) {
+            return $q->where('product_id', $product->id);
+        })->with([
+                    'city',
+                    'products' => function ($q) use ($product) {
+                        $q->where('product_id', $product->id);
+                    }
+                ])
             ->filter(json_decode($request->filter), $product)
             ->get();
 
@@ -85,6 +87,7 @@ class SearchController extends Controller
         return response()->json([
             'message' => 'Validation skipped for testing',
             'stores' => $paginatedStores,
+            // 'stores' => $product->products()->with(['store.city'])->paginate(),
         ]);
 
 

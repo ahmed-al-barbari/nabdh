@@ -33,12 +33,12 @@ class UserNotification
             if ($alert?->status == 'active') {
                 $type = $alert->type;
                 if (($type == 'gt') && $alert->target_price < $productPrice) {
-                    $title = "{$productName} ارتفع الى {$productPrice} في {$storeName}";
+                    $title = "{$productName} ارتفع الى {$productPrice}₪ في {$storeName}";
                     $status = "gt";
                     $user->notify(new \App\Notifications\UserNotification($title, $status));
                 }
                 if (($type == 'lt') && $alert->target_price > $productPrice) {
-                    $title = "{$productName} انخفض الى {$productPrice} في {$storeName}";
+                    $title = "{$productName} انخفض الى {$productPrice}₪ في {$storeName}";
                     $status = "lt";
                     $user->notify(new \App\Notifications\UserNotification($title, $status));
                 }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Events\NewStoreEvent;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -25,6 +26,13 @@ class Store extends Model
         'status',
         'city_id',
     ];
+
+    protected static function booted(): void
+    {
+        static::created(function (Store $store) {
+            event(new NewStoreEvent($store->load('user')));
+        });
+    }
 
     public function products()
     {

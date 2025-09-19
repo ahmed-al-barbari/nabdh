@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\JoinNewUserEvent;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -40,8 +41,14 @@ class AuthController extends Controller
             'whats' => false,
         ];
         $user = User::create($validated);
+        session()->regenerate();
+        session()->regenerateToken();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
-        Auth::guard('web')->login($user);
+        Auth::login($user);
+
+        event(new JoinNewUserEvent($user));
 
         // $token = $user->createToken('auth_token')->plainTextToken;
 
@@ -65,6 +72,8 @@ class AuthController extends Controller
             }
         });
 
+        info(Auth::user());
+
         $validated = $validator->validate();
         $user = User::where('email', $request->email)->
             orWhere('phone', $request->phone)->first();
@@ -81,8 +90,14 @@ class AuthController extends Controller
             ]);
         }
 
+        session()->regenerate();
+        session()->regenerateToken();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
         // $token = $user->createToken('auth_token')->plainTextToken;
-        Auth::guard('web')->login($user);
+        Auth::login($user);
+        info(Auth::user());
         // auth()-login($user);
         return response()->json([
             'message' => ApiMessage::LOGIN_SUCCESS->value,
@@ -95,7 +110,8 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         auth()->guard('web')->logout();
-
+        session()->regenerate();
+        session()->regenerateToken();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
@@ -111,6 +127,8 @@ class AuthController extends Controller
             return response()->json(['message' => 'Current password is incorrect'], 400);
         }
         Auth::guard('web')->logout();
+        session()->regenerate();
+        session()->regenerateToken();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         Auth::user()->delete();

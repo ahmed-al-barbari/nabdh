@@ -43,7 +43,7 @@ class BarterController extends Controller
                 ]);
             },
             'responses' => function ($query) use ($user) {
-                $query->when($user, function ($q) use ($user) {
+                $query->when($user, function ($q) use ($user): void {
                     $q->where('user_id', $user->id);
                 });
             }

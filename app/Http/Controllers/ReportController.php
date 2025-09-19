@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\NewReportEvent;
 use App\Models\Product;
 use App\Models\Report;
 use Auth;
@@ -17,7 +18,7 @@ class ReportController extends Controller
     public function store(Product $product)
     {
         try {
-
+            $user = Auth::user();
             $report = $product->report()->updateOrCreate(
                 [],
                 [
@@ -25,7 +26,10 @@ class ReportController extends Controller
                     'status' => 'pending',
                 ]
             );
-            $report->users()->syncWithoutDetaching([Auth::id()]);
+            $num = $report->users()->syncWithoutDetaching([$user->id]);
+            if (count($num['attached'])) {
+                event(new NewReportEvent($product, $user));
+            }
         } catch (Exception $e) {
             throw $e;
         }

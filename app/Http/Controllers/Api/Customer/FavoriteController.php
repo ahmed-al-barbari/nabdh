@@ -15,7 +15,7 @@ class FavoriteController extends Controller
      */
     public function index()
     {
-        $favorites = Favorite::with(['product', 'product.activeOffer'])
+        $favorites = Favorite::with(['product', 'product.activeOffer','product.store'])
             ->where('user_id', Auth::id())
             ->paginate();
 

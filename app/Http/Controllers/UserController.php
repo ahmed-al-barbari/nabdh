@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ChangeUserRoleEvent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -34,6 +35,13 @@ class UserController extends Controller
         }
 
         $user->update($validated);
+
+        info('no role');
+        info($user->isDirty() == true ? 'true' : 'fasel');
+        if ($user->isDirty('role')) {
+            event(new ChangeUserRoleEvent($user));
+        }
+
 
         return response()->json([
             'message' => 'User updated successfully',
