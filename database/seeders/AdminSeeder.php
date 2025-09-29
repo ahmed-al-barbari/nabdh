@@ -18,7 +18,7 @@ class AdminSeeder extends Seeder
             'name' => 'Admin Name',
             'password' => Hash::make('password'),
             'email' => 'admin@gmail.com',
-            'phone' => '+792565656565',
+            'phone' => '+972565656565',
             'role' => 'admin',
             'notification_methods' => [
                 'sms' => false,
