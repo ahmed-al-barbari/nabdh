@@ -36,17 +36,23 @@ class UserNotification
                     $title = "{$productName} ارتفع الى {$productPrice}₪ في {$storeName}";
                     $status = "gt";
                     $user->notify(new \App\Notifications\UserNotification($title, $status));
+                    if (!$alert->is_triggered) {
+                        $alert->update([
+                            'is_triggered' => true,
+                        ]);
+                    }
                 }
                 if (($type == 'lt') && $alert->target_price > $productPrice) {
                     $title = "{$productName} انخفض الى {$productPrice}₪ في {$storeName}";
                     $status = "lt";
                     $user->notify(new \App\Notifications\UserNotification($title, $status));
+                    if (!$alert->is_triggered) {
+                        $alert->update([
+                            'is_triggered' => true,
+                        ]);
+                    }
                 }
-                if (!$alert->is_triggered) {
-                    $alert->update([
-                        'is_triggered' => true,
-                    ]);
-                }
+
             }
         }
         // Notification::send($users, );

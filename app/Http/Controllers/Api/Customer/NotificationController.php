@@ -32,7 +32,7 @@ class NotificationController extends Controller
 
         $user = Auth::user();
 
-        $notification = UserNotification::create([...$validated, 'user_id' => $user->id]);
+        $notification = UserNotification::create([...$validated, 'status' => 'active', 'user_id' => $user->id]);
 
         return response()->json([
             'message' => ApiMessage::NOTIFICATION_CREATED->value,
