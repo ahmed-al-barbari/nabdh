@@ -7,8 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-class Report extends Model
-{
+class Report extends Model {
     use HasFactory;
 
     protected $fillable = [
@@ -17,13 +16,11 @@ class Report extends Model
         'status',
     ];
 
-    public function product(): BelongsTo
-    {
-        return $this->belongsTo(Product::class);
+    public function product(): BelongsTo {
+        return $this->belongsTo( Product::class );
     }
 
-    public function users(): BelongsToMany
-    {
-        return $this->belongsToMany(User::class, 'user_report')->using(UserReport::class);
+    public function users(): BelongsToMany {
+        return $this->belongsToMany( User::class, 'user_report' )->using( UserReport::class );
     }
 }

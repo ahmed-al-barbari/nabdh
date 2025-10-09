@@ -9,25 +9,24 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Notification;
 
-class NewReport
-{
+class NewReport {
     /**
-     * Create the event listener.
-     */
-    public function __construct()
-    {
+    * Create the event listener.
+    */
+
+    public function __construct() {
         //
     }
 
     /**
-     * Handle the event.
-     */
-    public function handle(NewReportEvent $event): void
-    {
-        $users = User::where('role', 'admin')->get();
-        $title = "ابلاغ جديد";
+    * Handle the event.
+    */
+
+    public function handle( NewReportEvent $event ): void {
+        $users = User::where( 'role', 'admin' )->get();
+        $title = 'ابلاغ جديد';
         $icon = 'report';
         $text = "قام {$event->user->name} بالابلاغ عن المنتج {$event->product->name}";
-        Notification::send($users, new AdminNotification($title, $text, $icon));
+        Notification::send( $users, new AdminNotification( $title, $text, $icon ) );
     }
 }

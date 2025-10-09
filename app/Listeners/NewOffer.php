@@ -8,27 +8,26 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Notification;
 
-class NewOffer
-{
+class NewOffer {
     /**
-     * Create the event listener.
-     */
-    public function __construct()
-    {
+    * Create the event listener.
+    */
+
+    public function __construct() {
         //
     }
 
     /**
-     * Handle the event.
-     */
-    public function handle(NewOfferEvent $event): void
-    {
-        $users = User::with(['userNotifications'])->where('recive_notification', true)->get();
+    * Handle the event.
+    */
+
+    public function handle( NewOfferEvent $event ): void {
+        $users = User::with( [ 'userNotifications' ] )->where( 'recive_notification', true )->get();
         $product = $event->product;
         $store = $event->product->store;
         $title = "عرض جديد: خصم على {$product->name} في {$store->name}";
-        $status = "offer";
+        $status = 'offer';
 
-        Notification::send($users, new \App\Notifications\UserNotification($title, $status));
+        Notification::send( $users, new \App\Notifications\UserNotification( $title, $status ) );
     }
 }

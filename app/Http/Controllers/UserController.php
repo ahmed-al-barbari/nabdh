@@ -6,13 +6,11 @@ use App\Events\ChangeUserRoleEvent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
-class UserController extends Controller
-{
-    public function update(Request $request)
-    {
+class UserController extends Controller {
+    public function update( Request $request ) {
         $user = $request->user();
 
-        $validated = $request->validate([
+        $validated = $request->validate( [
             'name' => 'sometimes|string|max:255',
             'email' => 'sometimes|email|unique:users,email,' . $user->id,
             'password' => 'sometimes|string|min:8|max:255',
@@ -24,28 +22,27 @@ class UserController extends Controller
             'recive_notification' => 'sometimes|in:0,1',
             'city_id' => 'sometimes|exists:cities,id',
             'share_location' => 'sometimes|in:0,1'
-        ]);
+        ] );
 
-        if (isset($validated['password'])) {
-            if (!isset($validated['current_password']) || !Hash::check($validated['current_password'], $user->password)) {
-                return response()->json(['message' => 'Current password is incorrect'], 400);
+        if ( isset( $validated[ 'password' ] ) ) {
+            if ( !isset( $validated[ 'current_password' ] ) || !Hash::check( $validated[ 'current_password' ], $user->password ) ) {
+                return response()->json( [ 'message' => 'Current password is incorrect' ], 400 );
             }
-            unset($validated['current_password']);
-            $validated['password'] = Hash::make($validated['password']);
+            unset( $validated[ 'current_password' ] );
+            $validated[ 'password' ] = Hash::make( $validated[ 'password' ] );
         }
 
-        $user->update($validated);
+        $user->update( $validated );
 
-        info('no role');
-        info($user->isDirty() == true ? 'true' : 'fasel');
-        if ($user->isDirty('role')) {
-            event(new ChangeUserRoleEvent($user));
+        info( 'no role' );
+        info( $user->isDirty() == true ? 'true' : 'fasel' );
+        if ( $user->isDirty( 'role' ) ) {
+            event( new ChangeUserRoleEvent( $user ) );
         }
 
-
-        return response()->json([
+        return response()->json( [
             'message' => 'User updated successfully',
             'user' => $user
-        ]);
+        ] );
     }
 }

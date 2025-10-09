@@ -9,8 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 
-class Barter extends Model
-{
+class Barter extends Model {
     use HasFactory;
 
     protected $fillable = [
@@ -30,45 +29,40 @@ class Barter extends Model
     ];
 
     // 🔗 العلاقة مع المستخدم
-    public function user()
-    {
-        return $this->belongsTo(User::class);
+
+    public function user() {
+        return $this->belongsTo( User::class );
     }
 
-    public function responses(): HasMany
-    {
-        return $this->hasMany(BarterResponse::class);
+    public function responses(): HasMany {
+        return $this->hasMany( BarterResponse::class );
     }
 
-    public function acceptedUser(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'accepted_by');
+    public function acceptedUser(): BelongsTo {
+        return $this->belongsTo( User::class, 'accepted_by' );
     }
-
 
     // 🔗 لو بدك تضيف عروض تبادل متعددة في جدول وسيط
-    public function offers()
-    {
-        return $this->hasMany(BarterOffer::class);
+
+    public function offers() {
+        return $this->hasMany( BarterOffer::class );
     }
 
     // 📌 Scope جاهز لجلب فقط العروض pending
-    public function scopePending($query)
-    {
-        return $query->where('status', 'pending');
+
+    public function scopePending( $query ) {
+        return $query->where( 'status', 'pending' );
     }
 
-    public function scopeAccepted($query)
-    {
-        return $query->where('status', 'accepted');
+    public function scopeAccepted( $query ) {
+        return $query->where( 'status', 'accepted' );
     }
-    protected function image(): Attribute
-    {
+    protected function image(): Attribute {
         return Attribute::make(
-            get: fn($value) => $value ? asset($value) : null,
+            get: fn( $value ) => $value ? asset( $value ) : null,
 
-            set: fn($value) => $value instanceof \Illuminate\Http\UploadedFile
-            ? $value->store('products', 'public')
+            set: fn( $value ) => $value instanceof \Illuminate\Http\UploadedFile
+            ? $value->store( 'products', 'public' )
             : $value
         );
     }

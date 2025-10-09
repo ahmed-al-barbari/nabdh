@@ -14,34 +14,32 @@ use App\Models\Store;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
-class CustomerController extends Controller
-{
+class CustomerController extends Controller {
     // تحديث التفضيلات فقط
-    public function updatePreferences(Request $request)
-    {
-        $validated = $request->validate([
+
+    public function updatePreferences( Request $request ) {
+        $validated = $request->validate( [
             'language'            => 'in:ar,en',
             'currency'            => 'in:ILS,USD',
             'theme'               => 'in:light,dark',
             'notification_method' => 'in:sms,email,whatsapp,push',
-        ]);
+        ] );
 
         $user = Auth::user();
-        $user->update($validated);
+        $user->update( $validated );
 
-        return response()->json([
+        return response()->json( [
             'message'     => ApiMessage::PREFERENCES_UPDATED->value,
-            'preferences' => Arr::only($user->toArray(), ['language', 'currency', 'theme', 'notification_method'])
-        ]);
+            'preferences' => Arr::only( $user->toArray(), [ 'language', 'currency', 'theme', 'notification_method' ] )
+        ] );
     }
 
-
     // تحديث البيانات الشخصية
-    public function updateProfile(Request $request)
-    {
+
+    public function updateProfile( Request $request ) {
         $user = Auth::user();
 
-        $validated = $request->validate([
+        $validated = $request->validate( [
             'name'         => 'sometimes|string|max:255',
             'email'        => 'sometimes|email|unique:users,email,' . $user->id,
             'phone'        => 'sometimes|string|max:20',
@@ -49,28 +47,28 @@ class CustomerController extends Controller
             'store_name'   => 'required_if:role,merchant|string|max:255',
             'store_address' => 'required_if:role,merchant|string|max:255',
             'store_image'  => 'nullable|string',
-        ]);
+        ] );
 
         // تحديث بيانات المستخدم
-        $user->update(Arr::only($validated, ['name', 'email', 'phone', 'role']));
+        $user->update( Arr::only( $validated, [ 'name', 'email', 'phone', 'role' ] ) );
 
         // إذا المستخدم غيّر حالته لتاجر
-        if ($request->role === 'merchant') {
+        if ( $request->role === 'merchant' ) {
             // تأكد أنه ما عندوش متجر سابق
-            if (!$user->store) {
-                Store::create([
+            if ( !$user->store ) {
+                Store::create( [
                     'user_id'  => $user->id,
-                    'name'     => $validated['store_name'],
-                    'address'  => $validated['store_address'],
-                    'image'    => $validated['store_image'] ?? null,
+                    'name'     => $validated[ 'store_name' ],
+                    'address'  => $validated[ 'store_address' ],
+                    'image'    => $validated[ 'store_image' ] ?? null,
                     'status'   => 'pending', // أول ما ينشأ يكون معلق
-                ]);
+                ] );
             }
         }
 
-        return response()->json([
+        return response()->json( [
             'message' => ApiMessage::PROFILE_UPDATED->value,
-            'user'    => $user->load('store')
-        ]);
+            'user'    => $user->load( 'store' )
+        ] );
     }
 }

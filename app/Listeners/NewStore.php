@@ -9,25 +9,24 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Notification;
 
-class NewStore
-{
+class NewStore {
     /**
-     * Create the event listener.
-     */
-    public function __construct()
-    {
+    * Create the event listener.
+    */
+
+    public function __construct() {
         //
     }
 
     /**
-     * Handle the event.
-     */
-    public function handle(NewStoreEvent $event): void
-    {
-        $users = User::where('role', 'admin')->get();
-        $title = "متجر جديد";
+    * Handle the event.
+    */
+
+    public function handle( NewStoreEvent $event ): void {
+        $users = User::where( 'role', 'admin' )->get();
+        $title = 'متجر جديد';
         $icon = 'store';
         $text = "قام {$event->store->user->name} بانشاء المتجر {$event->store->name}";
-        Notification::send($users, new AdminNotification($title, $text, $icon));
+        Notification::send( $users, new AdminNotification( $title, $text, $icon ) );
     }
 }

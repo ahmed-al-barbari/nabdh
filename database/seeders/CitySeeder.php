@@ -6,14 +6,13 @@ use App\Models\City;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
-class CitySeeder extends Seeder
-{
+class CitySeeder extends Seeder {
     /**
-     * Run the database seeds.
-     */
-    public function run(): void
-    {
-        City::query()->insert([
+    * Run the database seeds.
+    */
+
+    public function run(): void {
+        City::query()->insert( [
             [
                 'name' => 'بيت حانون',
                 'created_at' => now(),
@@ -65,6 +64,6 @@ class CitySeeder extends Seeder
                 'updated_at' => now(),
             ],
 
-        ]);
+        ] );
     }
 }

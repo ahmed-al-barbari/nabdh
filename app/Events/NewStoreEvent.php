@@ -11,15 +11,14 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class NewStoreEvent
-{
+class NewStoreEvent {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     /**
-     * Create a new event instance.
-     */
-    public function __construct(public Store $store)
-    {
+    * Create a new event instance.
+    */
+
+    public function __construct( public Store $store ) {
         //
     }
 }

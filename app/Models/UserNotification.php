@@ -5,8 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class UserNotification extends Model
-{
+class UserNotification extends Model {
     use HasFactory;
 
     protected $fillable = [
@@ -19,13 +18,11 @@ class UserNotification extends Model
         'type',
     ];
 
-    public function user()
-    {
-        return $this->belongsTo(User::class);
+    public function user() {
+        return $this->belongsTo( User::class );
     }
 
-    public function product()
-    {
-        return $this->belongsTo(MainProduct::class, 'product_id');
+    public function product() {
+        return $this->belongsTo( MainProduct::class, 'product_id' );
     }
 }

@@ -2,8 +2,7 @@
 
 namespace App\Enums;
 
-enum ApiMessage: string
-{
+enum ApiMessage: string {
     case USER_CREATED   = 'User has been created successfully.';
     case USER_UPDATED   = 'User updated successfully.';
     case USER_NOT_FOUND = 'User not found.';

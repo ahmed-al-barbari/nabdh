@@ -2,6 +2,5 @@
 
 namespace App\Services\SmsService;
 
-class SmsService
-{
+class SmsService {
 }

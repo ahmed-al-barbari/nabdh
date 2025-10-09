@@ -6,8 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class BarterOffer extends Model
-{
+class BarterOffer extends Model {
     use HasFactory;
 
     protected $fillable = [
@@ -17,13 +16,11 @@ class BarterOffer extends Model
         'status',
     ];
 
-    public function barter()
-    {
-        return $this->belongsTo(Barter::class);
+    public function barter() {
+        return $this->belongsTo( Barter::class );
     }
 
-    public function user()
-    {
-        return $this->belongsTo(User::class);
+    public function user() {
+        return $this->belongsTo( User::class );
     }
 }
