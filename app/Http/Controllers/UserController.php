@@ -13,8 +13,8 @@ class UserController extends Controller {
         $validated = $request->validate( [
             'name' => 'sometimes|string|max:255',
             'email' => 'sometimes|email|unique:users,email,' . $user->id,
-            'password' => 'sometimes|string|min:8|max:255',
-            'current_password' => 'sometimes|required_with:password|string|min:8|max:255',
+            'password' => 'sometimes|string|min:6|max:255',
+            'current_password' => 'sometimes|required_with:password|string|min:6|max:255',
             'phone' => 'sometimes|string|max:20|unique:users,phone,' . $user->id,
             'role' => 'sometimes|string|in:merchant,customer',
             'theme' => 'sometimes|string|in:light,dark',

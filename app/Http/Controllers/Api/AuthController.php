@@ -34,7 +34,6 @@ class AuthController extends Controller
         });
 
         $validated = $validator->validate();
-        $validated['password'] = Hash::make($validated['password']);
         $validated['notification_methods'] = [
             'sms' => false,
             'email' => false,
@@ -72,38 +71,29 @@ class AuthController extends Controller
             }
         });
 
-        info(Auth::user());
-
         $validated = $validator->validate();
-        $user = User::where('email', $request->email)->
-            orWhere('phone', $request->phone)->first();
 
-        if (!$user) {
-            return response()->json([
-                'message' => ApiMessage::USER_NOT_FOUND->value,
-            ], 404);
+        $credentials = ['password' => $validated['password']];
+        if (!empty($validated['email'])) {
+            $credentials['email'] = strtolower(trim($validated['email']));
+        } elseif (!empty($validated['phone'])) {
+            $credentials['phone'] = $validated['phone'];
         }
 
-        if (!Hash::check($request->password, $user->password)) {
+        if (!Auth::guard('web')->attempt($credentials)) {
             throw ValidationException::withMessages([
                 'email' => [ApiMessage::LOGIN_FAILED->value]
             ]);
         }
 
-        session()->regenerate();
-        session()->regenerateToken();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        $request->session()->regenerate();
 
-        // $token = $user->createToken('auth_token')->plainTextToken;
-        Auth::login($user);
-        info(Auth::user());
-        // auth()-login($user);
+        /** @var User $user */
+        $user = Auth::user();
+
         return response()->json([
             'message' => ApiMessage::LOGIN_SUCCESS->value,
             'user' => $user->load(['store', 'city']),
-            // 'access_token' => $token,
-            // 'token_type' => 'Bearer'
         ]);
     }
 

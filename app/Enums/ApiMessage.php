@@ -7,7 +7,7 @@ enum ApiMessage: string {
     case USER_UPDATED   = 'User updated successfully.';
     case USER_NOT_FOUND = 'User not found.';
     case LOGIN_SUCCESS  = 'Login successful.';
-    case LOGIN_FAILED   = 'Invalid credentials.';
+    case LOGIN_FAILED   = 'البريد أو كلمة المرور غير صحيحة.';
     case LOGOUT_SUCCESS = 'Logout successful.';
     case UNAUTHORIZED   = 'You are not authorized to perform this action.';
     case USER_STATUS_UPDATED = 'User status updated successfully.';

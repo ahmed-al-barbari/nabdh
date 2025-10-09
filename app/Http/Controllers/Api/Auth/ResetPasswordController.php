@@ -56,7 +56,7 @@ class ResetPasswordController extends Controller
             return response()->json(['message' => 'User not found'], 404);
         }
 
-        $user->password = Hash::make($request->password);
+        $user->password = $request->password;
         $user->save();
 
         DB::table('password_resets')
