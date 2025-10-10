@@ -21,6 +21,11 @@ class Product extends Model
         return $this->belongsTo(Store::class);
     }
 
+    public function reports()
+{
+    return $this->hasMany(Report::class);
+}
+
     public function category()
     {
         return $this->belongsTo(Category::class);
@@ -29,6 +34,7 @@ class Product extends Model
     {
         return $this->hasMany(Favorite::class);
     }
+
 
     public function mainProduct(): BelongsTo
     {

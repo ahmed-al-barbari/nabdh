@@ -9,6 +9,7 @@ use App\Models\Product;
 use Illuminate\Support\Facades\Auth;
 use App\Enums\ApiMessage;
 use App\Models\Store;
+use App\Services\PriceRatingService;
 
 class ProductController extends Controller
 {
@@ -83,6 +84,19 @@ class ProductController extends Controller
         ]);
     }
 
+    public function priceRating(Product $product, PriceRatingService $priceRatingService)
+    {
+        // أسعار السوق للمنتجات المماثلة في نفس التصنيف
+        $recentPrices = $product->category->products->pluck('price')->toArray();
+
+        // حساب تقييم السعر
+        $result = $priceRatingService->calculatePriceRating($product->price, $recentPrices);
+
+        return response()->json([
+            'product' => $product->name,
+            'rating' => $result,
+        ]);
+    }
 
     public function show($id)
     {
