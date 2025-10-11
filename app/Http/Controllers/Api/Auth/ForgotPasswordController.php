@@ -5,65 +5,41 @@ namespace App\Http\Controllers\Api\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
-
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
-use Carbon\Carbon;
-
+use App\Models\User;
+use App\Mail\ResetPasswordMail;
 
 class ForgotPasswordController extends Controller
 {
+    /**
+     * Send reset link to user's email (frontend URL included)
+     */
     public function sendResetLink(Request $request)
     {
         $request->validate([
-            'email' => 'nullable|email',
-            'phone' => 'nullable|string',
+            'email' => 'required|email',
         ]);
 
-        if (!$request->email && !$request->phone) {
-            return response()->json(['message' => 'Email or phone is required'], 422);
-        }
+        // Non-enumeration: always return same message to caller
+        $email = $request->email;
 
-        $user = \App\Models\User::when($request->email ?? false, function ($q, $email) {
-            $q->where('email', $email);
-        })
-            ->orWhere(function ($q) use ($request) {
-                $q->when($request->phone ?? false, function ($q, $phone) {
-                    $q->where('phone', $phone);
-                });
-            })
-            ->first();
+        $user = User::where('email', $email)->first();
 
         if ($user) {
-            $otp = rand(100000, 999999);
+            // create token using Laravel broker
+            $token = Password::createToken($user);
 
-            DB::table('password_resets')->updateOrInsert(
-                [
-                    'email' => $request->email,
-                    'phone' => $request->phone,
-                ],
-                [
-                    'token' => $otp,
-                    'created_at' => Carbon::now(),
-                ]
-            );
+            // build frontend reset url (configure FRONTEND_URL in env)
+            $frontendUrl = config('app.frontend_url', env('FRONTEND_URL', 'http://localhost:3000'));
+            $resetUrl = $frontendUrl . '/reset-password?token=' . $token . '&email=' . urlencode($user->email);
 
-            if ($request->email) {
-                Mail::raw("Your reset code is: $otp", function ($message) use ($request) {
-                    $message->to($request->email)->subject('Password Reset Code');
-                });
-            }
-
-            if ($request->phone) {
-                app(\App\Services\SmsService::class)->sendSms(
-                    $request->phone,
-                    "Your reset code is: $otp"
-                );
-            }
+            // send Mailable (you can customize view)
+            Mail::to($user->email)->send(new ResetPasswordMail($user, $resetUrl));
         }
 
-        return response()->json(['message' => 'If the account exists, a reset code has been sent']);
+        // Always respond with the same message (security: non-enumeration)
+        return response()->json([
+            'message' => 'If the account exists, a reset link has been sent to the email.'
+        ]);
     }
-
 }

@@ -21,13 +21,20 @@ class Product extends Model {
         return $this->belongsTo( Store::class );
     }
 
-    public function category() {
-        return $this->belongsTo( Category::class );
+    public function reports()
+{
+    return $this->hasMany(Report::class);
+}
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
     }
 
     public function favorites() {
         return $this->hasMany( Favorite::class );
     }
+
 
     public function mainProduct(): BelongsTo {
         return $this->belongsTo( MainProduct::class, 'product_id' );
