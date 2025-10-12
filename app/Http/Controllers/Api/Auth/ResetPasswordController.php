@@ -23,7 +23,7 @@ class ResetPasswordController extends Controller
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function (User $user, string $password) {
                 $user->forceFill([
-                    'password' => Hash::make($password),
+                    'password' => $password, // Let the User model's Attribute handle hashing
                 ])->save();
 
                 // Optionally: you can fire an event or logout other sessions here

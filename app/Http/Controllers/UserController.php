@@ -29,7 +29,7 @@ class UserController extends Controller {
                 return response()->json( [ 'message' => 'Current password is incorrect' ], 400 );
             }
             unset( $validated[ 'current_password' ] );
-            $validated[ 'password' ] = Hash::make( $validated[ 'password' ] );
+            // Let the User model's Attribute handle password hashing automatically
         }
 
         $user->update( $validated );
