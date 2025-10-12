@@ -62,34 +62,28 @@ class AuthController extends Controller
     $validator = Validator::make($request->all(), [
         'email' => [
             'required_without_all:phone',
-            'email:rfc,dns',
+            'email',
             'max:255',
             'exists:users,email'
         ],
         'phone' => [
             'required_without_all:email',
             'string',
-            'regex:/^\+?\d{11,15}$/', // يقبل + ورقم من 11 لـ 15 رقم
-            'exists:users,phone'
         ],
         'password' => [
             'required',
             'string',
             'min:6', // أقل شيء 6 حروف
             'max:64',
-            'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$/'
-            // لازم يحتوي على حرف كبير وصغير ورقم ورمز
         ],
     ], [
         'email.required_without_all' => 'يجب إدخال البريد الإلكتروني أو رقم الهاتف.',
         'phone.required_without_all' => 'يجب إدخال البريد الإلكتروني أو رقم الهاتف.',
         'email.email' => 'صيغة البريد الإلكتروني غير صحيحة.',
         'email.exists' => 'البريد الإلكتروني غير مسجل.',
-        'phone.regex' => 'صيغة رقم الهاتف غير صحيحة. مثال: +972599123456',
         'phone.exists' => 'رقم الهاتف غير مسجل.',
         'password.required' => 'كلمة المرور مطلوبة.',
-        'password.min' => 'كلمة المرور يجب ألا تقل عن 8 حروف.',
-        'password.regex' => 'كلمة المرور يجب أن تحتوي على حرف كبير وصغير ورقم ورمز خاص.',
+        'password.min' => 'كلمة المرور يجب ألا تقل عن 6 حروف.',
     ]);
 
     $validated = $validator->validate();
