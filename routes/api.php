@@ -58,9 +58,12 @@ Route::get('/product/last-products', [ProductController::class, 'lastProduct']);
 Route::get('/product/has-offer', [ProductController::class, 'productHasOffer']);
 Route::get('/product/view/{product}', [ProductController::class, 'viewProduct']);
 Route::get('/auth/user', function () {
-    if (request()->user())
-        return request()->user()->load(['store', 'city']);
-});
+    $user = request()->user();
+    if (!$user) {
+        return response()->json(['message' => 'Unauthenticated'], 401);
+    }
+    return $user->load(['store', 'city']);
+})->middleware('auth:sanctum');
 Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/active-notifications', [NotificationController::class, 'activeNotifications']);

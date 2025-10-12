@@ -88,6 +88,11 @@ class AuthController extends Controller
 
     $validated = $validator->validate();
 
+    // Logout any existing user to prevent session conflicts
+    Auth::guard('web')->logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+
     $credentials = ['password' => $validated['password']];
     if (!empty($validated['email'])) {
         $credentials['email'] = strtolower(trim($validated['email']));
