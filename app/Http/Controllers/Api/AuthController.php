@@ -69,6 +69,7 @@ class AuthController extends Controller
         'phone' => [
             'required_without_all:email',
             'string',
+            'exists:users,phone'
         ],
         'password' => [
             'required',
@@ -101,8 +102,9 @@ class AuthController extends Controller
     }
 
     if (!Auth::guard('web')->attempt($credentials)) {
+        $field = array_key_exists('email', $credentials) ? 'email' : 'phone';
         throw ValidationException::withMessages([
-            'email' => [ApiMessage::LOGIN_FAILED->value],
+            $field => [ApiMessage::LOGIN_FAILED->value],
         ]);
     }
 

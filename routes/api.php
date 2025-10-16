@@ -146,7 +146,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/user/profile', [CustomerController::class, 'updateProfile']);
     });
     Route::patch('/user/preferences', [CustomerController::class, 'updatePreferences']);
-    Route::patch('/user/profile', [CustomerController::class, 'updateProfile']);
+    // Route::patch('/user/profile', [CustomerController::class, 'updateProfile']);
 
     // Route::get('/barters', [BarterController::class, 'publicIndex']);
     Route::get('/barters', [BarterController::class, 'index']);

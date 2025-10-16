@@ -27,7 +27,7 @@ class ConversationController extends Controller
             ->latest()
             ->get()
             ->map(function ($conversation) use ($userId) {
-                $lastMessage = $conversation->messages_conversation->first();
+                $lastMessage = $conversation->messages_conversation->last();
                 return [
                     'id' => $conversation->id,
                     'user_one' => $conversation->userOne,
