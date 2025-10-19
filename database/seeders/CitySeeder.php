@@ -6,64 +6,32 @@ use App\Models\City;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
-class CitySeeder extends Seeder {
+class CitySeeder extends Seeder
+{
     /**
-    * Run the database seeds.
-    */
+     * Run the database seeds.
+     * Safe to run multiple times - will update existing records
+     */
+    public function run(): void
+    {
+        $cities = [
+            ['id' => 1, 'name' => 'بيت حانون'],
+            ['id' => 2, 'name' => 'بيت لاهيا'],
+            ['id' => 3, 'name' => 'جباليا'],
+            ['id' => 4, 'name' => 'غزة'],
+            ['id' => 5, 'name' => 'النصيرات'],
+            ['id' => 6, 'name' => 'البريج'],
+            ['id' => 7, 'name' => 'المغازي'],
+            ['id' => 8, 'name' => 'دير البلح'],
+            ['id' => 9, 'name' => 'خان يونس'],
+            ['id' => 10, 'name' => 'رفح'],
+        ];
 
-    public function run(): void {
-        City::query()->insert( [
-            [
-                'name' => 'بيت حانون',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'بيت لاهيا',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'جباليا',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'غزة',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'النصيرات',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'البريج',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'المغازي',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'دير البلح',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'خان يونس',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'رفح',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-
-        ] );
+        foreach ($cities as $city) {
+            City::updateOrCreate(
+                ['id' => $city['id']],
+                $city
+            );
+        }
     }
 }

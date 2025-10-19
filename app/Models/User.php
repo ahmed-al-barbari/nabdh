@@ -42,7 +42,7 @@ class User extends Authenticatable
     {
         static::updated(function (User $user) {
             info('no role');
-            info($user->isDirty() == true ? 'true' : 'fasel');
+            info($user->isDirty() == true ? 'true' : 'false');
             if ($user->isDirty('role')) {
                 event(new ChangeUserRoleEvent($user));
             }
