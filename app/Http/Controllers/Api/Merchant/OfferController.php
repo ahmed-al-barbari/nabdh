@@ -77,26 +77,33 @@ class OfferController extends Controller
         ]);
     }
 
-    public function destroy($id)
-    {
-        $offer = Offer::findOrFail($id);
+public function destroy($id)
+{
+    $offer = Offer::findOrFail($id);
 
-        $isOwner = Auth::user()
-            ->store
-                ?->products()
-            ->where('id', $offer->product_id)
-            ->exists();
+    $userStore = Auth::user()->store;
 
-        if (!$isOwner) {
-            return response()->json([
-                'message' => ApiMessage::UNAUTHORIZED->value
-            ], 403);
-        }
-
-        $offer->delete();
-
+    // تحقق إن المستخدم عنده متجر أولاً
+    if (!$userStore) {
         return response()->json([
-            'message' => ApiMessage::OFFER_DELETED->value
-        ]);
+            'message' => ApiMessage::UNAUTHORIZED->value
+        ], 403);
     }
+
+    // تحقق إن العرض تابع لمتجر المستخدم فعلاً
+    $isOwner = $offer->product->store_id === $userStore->id;
+
+    if (!$isOwner) {
+        return response()->json([
+            'message' => ApiMessage::UNAUTHORIZED->value
+        ], 403);
+    }
+
+    $offer->delete();
+
+    return response()->json([
+        'message' => ApiMessage::OFFER_DELETED->value
+    ]);
+}
+
 }

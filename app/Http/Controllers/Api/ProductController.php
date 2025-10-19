@@ -11,6 +11,10 @@ use Illuminate\Support\Facades\Auth;
 use App\Enums\ApiMessage;
 use App\Models\Store;
 use App\Services\PriceRatingService;
+use App\Events\PriceUpdated;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\PriceUpdatedMail;
+use App\Models\User;
 
 class ProductController extends Controller
 {
@@ -101,7 +105,7 @@ class ProductController extends Controller
     {
         // $product = Product::with(['category.store'])->findOrFail($id);
 
-        $product = Auth::user()->store->products()->with(['store:id,name,address,city_id','activeOffer'])->where('id', $id)->first();
+        $product = Auth::user()->store->products()->with(['store:id,name,address,city_id', 'activeOffer'])->where('id', $id)->first();
         return response()->json([
             'message' => ApiMessage::PRODUCT_FETCHED->value,
             'product' => $product,
@@ -132,29 +136,46 @@ class ProductController extends Controller
         // ]);
     }
 
+
     public function update(Request $request, $id)
     {
         $product = Product::findOrFail($id);
 
+        // ✅ التحقق من البيانات
         $validated = $request->validate([
-            // 'store_id' => 'required|exists:stores,id',
-            // 'category_id' => 'required|exists:categories,id',
             'product_id' => 'sometimes|required|exists:main_products,id',
             'description' => 'nullable|string',
-            'price' => 'sometimes|required|numeric',
-            // 'quantity' => 'required|integer',
-            'image' => 'sometimes|required|file',
+            'price' => 'sometimes|required|numeric|min:0',
+            'image' => 'sometimes|file|image|max:2048',
         ]);
 
+        // ✅ نحفظ السعر القديم عشان نقارن
+        $oldPrice = $product->price;
+
+        // ✅ تحديث المنتج
         $product->update($validated);
 
-        event(new UserNotification($product));
+        // ✅ لو السعر تغيّر فعلاً → نبثّ الحدث و نرسل الإيميل
+        if (isset($validated['price']) && $validated['price'] != $oldPrice) {
+            event(new PriceUpdated($product->id, $product->price));
+
+            // ✉️ إرسال إيميل لمتابعي المنتج
+            $users = User::whereHas('favorites', function ($q) use ($product) {
+                $q->where('product_id', $product->id);
+            })->get();
+
+            foreach ($users as $user) {
+                Mail::to($user->email)->send(new PriceUpdatedMail($product));
+            }
+        }
 
         return response()->json([
             'message' => ApiMessage::PRODUCT_UPDATED->value,
             'product' => $product
         ]);
     }
+
+
 
     public function destroy($id)
     {
@@ -192,6 +213,4 @@ class ProductController extends Controller
     {
         return Product::with(['store:id,name,address', 'activeOffer'])->whereHas('activeOffer')->paginate();
     }
-
-
 }
