@@ -46,7 +46,6 @@ class User extends Authenticatable
             if ($user->isDirty('role')) {
                 event(new ChangeUserRoleEvent($user));
             }
-
         });
     }
 
@@ -78,7 +77,7 @@ class User extends Authenticatable
     protected function password(): Attribute
     {
         return Attribute::make(
-            set: fn ($value) => Hash::make($value),
+            set: fn($value) => Hash::make($value),
         );
     }
 
@@ -112,7 +111,6 @@ class User extends Authenticatable
                         return true;
                 return false;
             }
-
         });
     }
     public function city()
@@ -123,5 +121,10 @@ class User extends Authenticatable
     public function userNotifications()
     {
         return $this->hasMany(UserNotification::class, 'user_id');
+    }
+
+    public function barterResponses()
+    {
+        return $this->hasMany(BarterResponse::class);
     }
 }
