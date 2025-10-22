@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Auth;
-use PhpParser\Node\Expr\Cast\Object_;
 use Storage;
 
 class Store extends Model
@@ -96,17 +95,6 @@ class Store extends Model
         return $builder;
     }
 
-    // public function percentile(array $sorted, $percentile)
-    // {
-    //     $index = ($percentile / 100) * (count($sorted) - 1);
-    //     $lower = floor($index);
-    //     $upper = ceil($index);
-    //     $weight = $index - $lower;
-    //     if ($upper >= count($sorted))
-    //         return $sorted[$lower];
-    //     return $sorted[$lower] * (1 - $weight) + $sorted[$upper] * $weight;
-    // }
-
     protected function image(): Attribute
     {
         return Attribute::make(
@@ -114,16 +102,6 @@ class Store extends Model
         );
     }
 
-    public function percentile(array $sorted, $percentile)
-    {
-        $index = ($percentile / 100) * (count($sorted) - 1);
-        $lower = floor($index);
-        $upper = ceil($index);
-        $weight = $index - $lower;
-        if ($upper >= count($sorted))
-            return $sorted[$lower];
-        return $sorted[$lower] * (1 - $weight) + $sorted[$upper] * $weight;
-    }
 
 
 }

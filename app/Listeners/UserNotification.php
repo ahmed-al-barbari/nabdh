@@ -4,9 +4,6 @@ namespace App\Listeners;
 
 use App\Events\UserNotification as UserNotificationEvent;
 use App\Models\User;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Support\Facades\Notification;
 
 class UserNotification {
     /**
@@ -54,6 +51,5 @@ class UserNotification {
 
             }
         }
-        // Notification::send( $users, );
     }
 }

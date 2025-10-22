@@ -3,18 +3,16 @@
 namespace Database\Seeders;
 
 use App\Models\Barter;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
-class BarterSeeder extends Seeder
-{
+class BarterSeeder extends Seeder {
     /**
-     * Run the database seeds.
-     * Safe to run multiple times - will update existing records
-     * Uses ACTUAL storage filenames (hashed by Laravel)
-     */
-    public function run(): void
-    {
+    * Run the database seeds.
+    * Safe to run multiple times - will update existing records
+    * Uses ACTUAL storage filenames ( hashed by Laravel )
+    */
+
+    public function run(): void {
         $barters = [
             [
                 'id' => 1,
@@ -98,9 +96,9 @@ class BarterSeeder extends Seeder
             ],
         ];
 
-        foreach ($barters as $barter) {
+        foreach ( $barters as $barter ) {
             Barter::updateOrCreate(
-                ['id' => $barter['id']],
+                [ 'id' => $barter[ 'id' ] ],
                 $barter
             );
         }

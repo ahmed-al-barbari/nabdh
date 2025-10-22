@@ -21,10 +21,7 @@ class AuthController extends Controller
             'password' => 'required|string|min:6',
             'email' => 'required_without_all:phone|email|unique:users,email',
             'phone' => 'required_without_all:email|string|size:13|unique:users,phone',
-            // 'address' => 'required|string|min:6',
-            // 'role' => 'required|in:customer,merchant'
         ]);
-        info(request()->phone);
 
         $validator->after(function ($validator) use ($request) {
             if (empty($request->email) && empty($request->phone)) {
@@ -49,7 +46,6 @@ class AuthController extends Controller
 
         event(new JoinNewUserEvent($user));
 
-        // $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'message' => ApiMessage::USER_CREATED->value,
@@ -89,7 +85,7 @@ class AuthController extends Controller
 
     $validated = $validator->validate();
 
-    // Logout any existing user to prevent session conflicts
+    // تسجيل خروج من جميع المستخدمين لتجنب التعارض في الجلسة
     Auth::guard('web')->logout();
     $request->session()->invalidate();
     $request->session()->regenerateToken();

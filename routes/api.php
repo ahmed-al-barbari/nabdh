@@ -1,13 +1,11 @@
 <?php
 
 namespace App\Http\Controllers\Api;
-
 use App\Http\Controllers\Api\Customer\SearchController;
 use App\Http\Controllers\CityController;
 use App\Http\Controllers\OtpController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AdminController;
@@ -27,7 +25,6 @@ use App\Http\Controllers\Api\ProductController;
 use Illuminate\Support\Facades\Broadcast;
 use App\Http\Controllers\GoogleController;
 
-// use App\Http\Controllers\Api\Merchant\CategoryController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -146,9 +143,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/user/profile', [CustomerController::class, 'updateProfile']);
     });
     Route::patch('/user/preferences', [CustomerController::class, 'updatePreferences']);
-    // Route::patch('/user/profile', [CustomerController::class, 'updateProfile']);
-
-    // Route::get('/barters', [BarterController::class, 'publicIndex']);
+    
     Route::get('/barters', [BarterController::class, 'index']);
     Route::get('/barters/{id}', [BarterController::class, 'show']);
     Route::delete('/barters/{id}', [BarterController::class, 'delete']);
@@ -171,10 +166,3 @@ Route::middleware('auth:sanctum')->prefix('chat')->group(function () {
     Route::get('/conversations/get-messages/{user}', [MessageController::class, 'index']);
 
 });
-
-// Route::get('/test',function() {
-
-// })
-
-
-// Broadcast::routes(['middleware' => ['auth:sanctum']]);

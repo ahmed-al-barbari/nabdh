@@ -3,7 +3,6 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -27,17 +26,6 @@ class UserNotification extends Notification
     public function via(object $notifiable): array
     {
         $channles = ['database', 'broadcast'];
-        // if ($notifiable->recive_notification) {
-        //     if ($notifiable->notification_methods['sms']) {
-        //         array_push($channles, 'sms');
-        //     }
-        //     if ($notifiable->notification_methods['email']) {
-        //         array_push($channles, 'mail');
-        //     }
-        //     if ($notifiable->notification_methods['whats']) {
-        //         array_push($channles, 'whats');
-        //     }
-        // }
         return $channles;
     }
 

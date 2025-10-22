@@ -3,18 +3,16 @@
 namespace Database\Seeders;
 
 use App\Models\Store;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
-class StoreSeeder extends Seeder
-{
+class StoreSeeder extends Seeder {
     /**
-     * Run the database seeds.
-     * Safe to run multiple times - will update existing records
-     * Uses ACTUAL storage filenames (hashed by Laravel)
-     */
-    public function run(): void
-    {
+    * Run the database seeds.
+    * Safe to run multiple times - will update existing records
+    * Uses ACTUAL storage filenames ( hashed by Laravel )
+    */
+
+    public function run(): void {
         $stores = [
             [
                 'id' => 1,
@@ -108,9 +106,9 @@ class StoreSeeder extends Seeder
             ],
         ];
 
-        foreach ($stores as $store) {
+        foreach ( $stores as $store ) {
             Store::updateOrCreate(
-                ['id' => $store['id']],
+                [ 'id' => $store[ 'id' ] ],
                 $store
             );
         }

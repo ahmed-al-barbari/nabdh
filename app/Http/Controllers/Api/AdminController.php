@@ -57,10 +57,6 @@ class AdminController extends Controller {
         $user = User::findOrFail( $id );
 
         $request->validate( [
-            // 'name' => 'nullable|string|max:255',
-            // 'email' => 'nullable|email|unique:users,email,' . $user->id,
-            // 'phone' => 'nullable|string',
-            // 'address' => 'nullable|string',
             'status' => 'sometimes|required|in:active,pending,inactive',
             'role' => 'sometimes|required|in:merchant,customer'
         ] );
@@ -112,18 +108,4 @@ class AdminController extends Controller {
         ] );
     }
 
-    // public function message( Request $request, $id )
-    // {
-    //     $user = User::findOrFail( $id );
-
-    //     $request->validate( [
-    //         'message' => 'required|string'
-    // ] );
-
-    //     $user->notify( new \App\Notifications\AdminMessage( $request->message ) );
-
-    //     return response()->json( [
-    //         'message' => 'Message sent successfully.'
-    // ] );
-    // }
 }

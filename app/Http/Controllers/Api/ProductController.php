@@ -20,34 +20,6 @@ class ProductController extends Controller
 {
     public function index()
     {
-        // $products = Product::with(['category.store'])
-        //     ->whereHas('category.store', function ($q) {
-        //         $q->where('user_id', Auth::id());
-        //     })->get()
-        //     ->map(function ($product) {
-        //         return [
-        //             'id' => $product->id,
-        //             'name' => $product->name,
-        //             'description' => $product->description,
-        //             'price' => $product->price,
-        //             'offer_price' => $product->offer_price,
-        //             'offer_expiry' => $product->offer_expiry,
-        //             'image' => $product->image,
-        //             'quantity' => $product->quantity,
-        //             'category' => [
-        //                 'id' => $product->category->id,
-        //                 'name' => $product->category->name,
-        //             ],
-        //             'store' => [
-        //                 'id' => $product->category->store->id,
-        //                 'name' => $product->category->store->name,
-        //                 'address' => $product->category->store->address,
-        //                 'lat' => $product->category->store->latitude,
-        //                 'lng' => $product->category->store->longitude,
-        //             ]
-        //         ];
-        //     });
-
         $products = Auth::user()->store?->products()->with(['store:id,name,address', 'activeOffer'])->paginate() ?? collect();
 
         return response()->json([
@@ -62,12 +34,9 @@ class ProductController extends Controller
         $store = Store::where('user_id', Auth::id())->firstOrFail();
 
         $validated = $request->validate([
-            // 'store_id' => 'required|exists:stores,id',
             'product_id' => 'required|exists:main_products,id',
-            // 'name' => 'required|string',
             'description' => 'nullable|string',
             'price' => 'required|numeric',
-            // 'quantity' => 'required|integer',
             'image' => 'required|image',
         ]);
 
@@ -77,7 +46,6 @@ class ProductController extends Controller
             ]);
         }
 
-        // $validated['image'] = $request->file('image')->store('/products');
         $validated['store_id'] = $store->id;
         $product = Product::create($validated);
         event(new UserNotification($product));
@@ -103,37 +71,13 @@ class ProductController extends Controller
 
     public function show($id)
     {
-        // $product = Product::with(['category.store'])->findOrFail($id);
 
         $product = Auth::user()->store->products()->with(['store:id,name,address,city_id', 'activeOffer'])->where('id', $id)->first();
         return response()->json([
             'message' => ApiMessage::PRODUCT_FETCHED->value,
             'product' => $product,
         ]);
-        // return response()->json([
-        //     'message' => ApiMessage::PRODUCT_FETCHED->value,
-        //     'product' => [
-        //         'id' => $product->id,
-        //         'name' => $product->name,
-        //         'description' => $product->description,
-        //         'price' => $product->price,
-        //         'offer_price' => $product->offer_price,
-        //         'offer_expiry' => $product->offer_expiry,
-        //         'image' => $product->image,
-        //         'quantity' => $product->quantity,
-        //         'category' => [
-        //             'id' => $product->category->id,
-        //             'name' => $product->category->name,
-        //         ],
-        //         'store' => [
-        //             'id' => $product->category->store->id,
-        //             'name' => $product->category->store->name,
-        //             'address' => $product->category->store->address,
-        //             'lat' => $product->category->store->latitude,
-        //             'lng' => $product->category->store->longitude,
-        //         ]
-        //     ]
-        // ]);
+       
     }
 
 
@@ -141,7 +85,7 @@ class ProductController extends Controller
     {
         $product = Product::findOrFail($id);
 
-        // ✅ التحقق من البيانات
+        //   التحقق من البيانات
         $validated = $request->validate([
             'product_id' => 'sometimes|required|exists:main_products,id',
             'description' => 'nullable|string',
@@ -149,17 +93,17 @@ class ProductController extends Controller
             'image' => 'sometimes|file|image|max:2048',
         ]);
 
-        // ✅ نحفظ السعر القديم عشان نقارن
+        //   نحفظ السعر القديم عشان نقارن
         $oldPrice = $product->price;
 
-        // ✅ تحديث المنتج
+        //   تحديث المنتج
         $product->update($validated);
 
-        // ✅ لو السعر تغيّر فعلاً → نبثّ الحدث و نرسل الإيميل
+        //   لو السعر تغيّر فعلاً → نبثّ الحدث و نرسل الإيميل
         if (isset($validated['price']) && $validated['price'] != $oldPrice) {
             event(new PriceUpdated($product->id, $product->price));
 
-            // ✉️ إرسال إيميل لمتابعي المنتج
+            //  إرسال إيميل لمتابعي المنتج
             $users = User::whereHas('favorites', function ($q) use ($product) {
                 $q->where('product_id', $product->id);
             })->get();

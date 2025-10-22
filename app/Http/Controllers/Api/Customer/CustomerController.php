@@ -2,17 +2,13 @@
 
 namespace App\Http\Controllers\Api\Customer;
 
-use App\Models\User;
-use App\Models\Alert;
-use App\Models\Barter;
-use App\Models\Message;
+
 use App\Enums\ApiMessage;
 use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Store;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 
 class CustomerController extends Controller {
     // تحديث التفضيلات فقط

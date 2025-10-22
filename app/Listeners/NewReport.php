@@ -5,8 +5,6 @@ namespace App\Listeners;
 use App\Events\NewReportEvent;
 use App\Models\User;
 use App\Notifications\AdminNotification;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
 use Notification;
 
 class NewReport {

@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Events\ChangeUserRoleEvent;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -10,7 +9,6 @@ use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
@@ -28,7 +26,6 @@ class User extends Authenticatable
         'theme',
         'currency',
         'recive_notification',
-        // 'notification_method',
         'notification_methods',
         'city_id',
         'share_location'
@@ -41,8 +38,6 @@ class User extends Authenticatable
     protected static function booted()
     {
         static::updated(function (User $user) {
-            info('no role');
-            info($user->isDirty() == true ? 'true' : 'false');
             if ($user->isDirty('role')) {
                 event(new ChangeUserRoleEvent($user));
             }

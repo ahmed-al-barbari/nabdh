@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Models\Store;
 use App\Models\Category;
 use App\Enums\ApiMessage;
 use Illuminate\Http\Request;

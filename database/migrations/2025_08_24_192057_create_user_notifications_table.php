@@ -13,15 +13,11 @@ return new class extends Migration {
         Schema::create('user_notifications', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
-            // $table->unsignedBigInteger('product_id');
             $table->decimal('target_price', 10, 2);
-            // $table->enum('method', ['sms', 'whatsapp', 'email']);
             $table->enum('status', ['active', 'inactive', 'pending'])->default('pending');
             $table->boolean('is_triggered')->default(false);
             $table->timestamps();
-
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            // $table->foreign('product_id')->references('id')->on('main_products')->onDelete('cascade');
         });
     }
 

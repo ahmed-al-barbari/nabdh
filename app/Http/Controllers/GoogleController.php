@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use Hash;
-use Illuminate\Http\Request;
-
 use App\Http\Controllers\Controller;
 use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;

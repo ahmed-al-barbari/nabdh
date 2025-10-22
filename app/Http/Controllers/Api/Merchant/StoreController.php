@@ -73,7 +73,6 @@ class StoreController extends Controller
             'image' => 'nullable|string',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
-            // 'status'    => 'in:active,inactive,pending',
         ]);
 
         // إذا المستخدم تاجر، لا يسمح له بتغيير الحالة
@@ -81,12 +80,6 @@ class StoreController extends Controller
             unset($validated['status']);
         }
 
-        // // إذا المستخدم تاجر، تأكد أنه صاحب المتجر
-        // if ($user->role === 'merchant' && $store->user_id !== $user->id) {
-        //     return response()->json([
-        //         'message' => ApiMessage::UNAUTHORIZED->value
-        //     ], 403);
-        // }
 
         $store->update($validated);
 

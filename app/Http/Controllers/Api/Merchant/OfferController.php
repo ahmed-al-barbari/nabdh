@@ -21,7 +21,7 @@ class OfferController extends Controller
             'end_date' => 'required|date|after:start_date',
         ]);
 
-        // 🔐 تحقق أن المنتج يخص التاجر الحالي
+        //  تحقق أن المنتج يخص التاجر الحالي
         $isOwner = Auth::user()
             ->store
                 ?->products()
@@ -48,7 +48,7 @@ class OfferController extends Controller
     {
         $offer = Offer::findOrFail($id);
 
-        // 🔐 تحقق أن المنتج تبع التاجر
+        // تحقق أن المنتج تبع التاجر
         $isOwner = Auth::user()
             ->store
                 ?->products()

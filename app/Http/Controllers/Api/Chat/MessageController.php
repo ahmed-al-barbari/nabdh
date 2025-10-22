@@ -1,8 +1,6 @@
 <?php
 
-// app/Http/Controllers/Api/Chat/MessageController.php
 namespace App\Http\Controllers\Api\Chat;
-
 use App\Events\MessageSent;
 use App\Http\Controllers\Controller;
 use App\Models\Conversation;
@@ -82,25 +80,7 @@ class MessageController extends Controller
             'content' => 'required|string',
         ]);
 
-        // $ids = [Auth::id(), $data['receiver_id']];
-        // // sort($ids);
-
-        // // إما يرجع المحادثة أو ينشئ جديدة
-        // $conversation = Conversation::where(function ($q) use ($ids) {
-        //     $q->where('user_one_id', $ids[0])
-        //         ->where('user_two_id', $ids[1]);
-        // })->orWhere(function ($q) use ($ids) {
-        //     $q->where('user_one_id', $ids[1])
-        //         ->where('user_two_id', $ids[0]);
-        // })->first();
-
-        // if (!$conversation) {
-        //     $conversation = Conversation::create([
-        //         'user_one_id' => $ids[0],
-        //         'user_two_id' => $ids[1],
-        //     ]);
-        // }
-
+       
         // إنشاء الرسالة
         $message = $conversation->messages_conversation()->create([
             'sender_id' => Auth::id(),
@@ -118,8 +98,4 @@ class MessageController extends Controller
         ], 201);
     }
 
-    // public function getMessageResponse(Conversation $conversation)
-    // {
-
-    // }
 }
