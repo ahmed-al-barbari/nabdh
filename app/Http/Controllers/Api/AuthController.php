@@ -49,7 +49,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => ApiMessage::USER_CREATED->value,
-            'user' => $user->load('store'),
+            'user' => $user->load(['store.city', 'city']),
         ], 201);
     }
 
@@ -111,7 +111,7 @@ class AuthController extends Controller
 
     return response()->json([
         'message' => ApiMessage::LOGIN_SUCCESS->value,
-        'user' => $user->load(['store', 'city']),
+        'user' => $user->load(['store.city', 'city']),
     ]);
 }
 

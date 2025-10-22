@@ -59,7 +59,7 @@ Route::get('/auth/user', function () {
     if (!$user) {
         return response()->json(['message' => 'Unauthenticated'], 401);
     }
-    return $user->load(['store', 'city']);
+    return $user->load(['store.city', 'city']);
 })->middleware('auth:sanctum');
 Route::middleware('auth:sanctum')->group(function () {
 

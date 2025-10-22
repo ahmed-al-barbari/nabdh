@@ -4,9 +4,10 @@ namespace App\Listeners;
 
 use App\Events\NewOfferEvent;
 use App\Models\User;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Notification;
 
-class NewOffer {
+class NewOffer implements ShouldQueue {
     /**
     * Create the event listener.
     */
