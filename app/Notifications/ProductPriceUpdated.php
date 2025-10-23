@@ -14,7 +14,7 @@ class ProductPriceUpdated extends Notification implements ShouldQueue
 
     public function __construct(public Product $product)
     {
-        //
+        $this->product = $product;
     }
 
     /**

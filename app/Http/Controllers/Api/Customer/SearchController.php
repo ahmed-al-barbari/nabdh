@@ -65,8 +65,7 @@ public function searchStores(Request $request, MainProduct $product)
             if ($productItem->price <= $median) $store->price_rating_score = 3;
             elseif ($productItem->price <= $upperBound) $store->price_rating_score = 2;
             else $store->price_rating_score = 1;
-
-            return $store;
+               return $store;
         });
 
         // فرز حسب score

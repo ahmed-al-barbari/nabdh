@@ -164,7 +164,7 @@ class ProductController extends Controller
             $users = User::whereHas('userNotifications', function ($q) use ($product) {
                 $q->where('product_id', $product->id)
                     ->where('status', 'active');
-            })->where('recive_notification', true)
+            })->where('recive_notification', 1)
                 ->get();
 
             // إرسال الإشعارات حسب إعدادات المستخدم
@@ -210,7 +210,9 @@ class ProductController extends Controller
     }
     public function lastProduct()
     {
-        return Product::with(['store:id,name,address', 'activeOffer'])->latest()->paginate();
+        return Product::with(['store:id,name,address', 'activeOffer'])
+            ->latest('updated_at') // بدل latest()
+            ->paginate();
     }
 
     public function productHasOffer()
