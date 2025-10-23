@@ -14,7 +14,7 @@ class Product extends Model {
     use HasFactory;
 
     protected $fillable = [ 'store_id', 'product_id', 'description', 'price', 'quantity', 'image' ];
-    protected $appends = [ 'name', 'is_favorite', 'recent_prices' ];
+    protected $appends = [ 'name', 'is_favorite', 'recent_prices', 'category_name' ];
 
     public function store() {
         return $this->belongsTo( Store::class );
@@ -84,6 +84,12 @@ class Product extends Model {
                 ->pluck( 'price' );
             }
             ,
+        );
+    }
+
+    protected function categoryName(): Attribute {
+        return Attribute::make(
+            get: fn() => $this->mainProduct?->category?->name,
         );
     }
 }
