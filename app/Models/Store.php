@@ -63,7 +63,7 @@ class Store extends Model
                     return;
                 }
 
-                $q->join('distances', function ($join) use ($userCityId) {
+                $q->leftJoin('distances', function ($join) use ($userCityId) {
                     $join->on(function ($query) use ($userCityId) {
                         $query->whereColumn('distances.city_id_one', 'stores.city_id')
                             ->where('distances.city_id_two', $userCityId)
@@ -74,7 +74,8 @@ class Store extends Model
                     });
                 })
                     ->select('stores.*', 'distances.distance')
-                    ->orderBy('distances.distance', 'asc');
+                    // Sort: Same city first (NULL distance = في منطقتك), then by numeric distance
+                    ->orderByRaw('CASE WHEN stores.city_id = ? THEN 0 ELSE CAST(distances.distance AS UNSIGNED) END ASC', [$userCityId]);
             } elseif ($value === 'rating') {
                 $q->with([
                     'products' => function ($q2) use ($product) {
