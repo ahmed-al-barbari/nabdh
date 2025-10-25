@@ -146,7 +146,7 @@ Route::middleware('auth:sanctum')->group(function () {
     
     Route::get('/barters', [BarterController::class, 'index']);
     Route::get('/barters/{id}', [BarterController::class, 'show']);
-    Route::delete('/barters/{id}', [BarterController::class, 'delete']);
+    Route::delete('/barters/{id}', [BarterController::class, 'destroy']);
     Broadcast::routes(['middleware' => ['auth:sanctum']]);
     Route::middleware(['auth:sanctum'])->group(function () {
         // بدء/جلب محادثة 1:1
