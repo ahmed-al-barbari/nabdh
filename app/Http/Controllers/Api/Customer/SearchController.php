@@ -4,110 +4,144 @@ namespace App\Http\Controllers\Api\Customer;
 
 use App\Models\MainProduct;
 use App\Models\Store;
-use App\Models\Product;
 use App\Enums\ApiMessage;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Pagination\LengthAwarePaginator;
 
 class SearchController extends Controller
 {
+    public function searchStores(Request $request, MainProduct $product)
+    {
+        $perPage = $request->per_page ?? 10;
+        $page = $request->input('page', 1);
+        $filter = json_decode($request->filter);
 
-public function searchStores(Request $request, MainProduct $product)
-{
-    $perPage = $request->per_page ?? 10;
-    $page = $request->input('page', 1);
-
-    $lat = $request->latitude;
-    $lng = $request->longitude;
-    $productName = $request->product;
-    $minPrice = $request->min_price;
-    $maxPrice = $request->max_price;
-    $filter = json_decode($request->filter);
-
-    $storesQuery = Store::query()
-        ->where('status', 'active')
-        ->whereRelation('products', fn($q) => $q->where('product_id', $product->id))
-        ->with([
+        // Get stores that have the specified product
+        $stores = Store::whereRelation('products', function ($q) use ($product) {
+            return $q->where('product_id', $product->id);
+        })->with([
             'city',
-            'products' => fn($q) => $q->where('product_id', $product->id)
+            'products' => function ($q) use ($product) {
+                $q->where('product_id', $product->id);
+            }
         ])
-        ->when($productName, fn($q) => $q->whereHas('products', fn($p) => $p->where('name', 'like', "%{$productName}%")))
-        ->when($minPrice, fn($q) => $q->whereHas('products', fn($p) => $p->where('price', '>=', $minPrice)))
-        ->when($maxPrice, fn($q) => $q->whereHas('products', fn($p) => $p->where('price', '<=', $maxPrice)))
-        ->select('*')
-        ->selectRaw(
-            "(6371 * acos(cos(radians(?)) * cos(radians(latitude))
-              * cos(radians(longitude) - radians(?))
-              + sin(radians(?)) * sin(radians(latitude)))) AS distance",
-            [$lat, $lng, $lat]
+            ->filter($filter, $product)
+            ->get();
+
+        // Apply price rating if rating filter is selected
+        if (!empty($filter) && strtolower($filter->dependent ?? '') === 'rating') {
+            $stores = $this->applyPriceRating($stores, $product);
+        }
+
+        // Paginate results
+        $paginatedStores = new LengthAwarePaginator(
+            $stores->forPage($page, $perPage),
+            $stores->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
         );
 
-    $stores = $storesQuery->get()->unique('id')->values(); // ✅ إزالة التكرار
+        // $stores = $storesQuery->get()->unique('id')->values(); // ✅ إزالة التكرار
 
-    // ترتيب حسب تقييم السعر لو المطلوب
-    if (!empty($filter) && strtolower($filter->dependent ?? '') === 'rating') {
-        $stores = $stores->map(function ($store) use ($product) {
-            $productItem = $store->products->first();
-            if (!$productItem) { $store->price_rating_score = 0; return $store; }
+        // ترتيب حسب تقييم السعر لو المطلوب
+        if (!empty($filter) && strtolower($filter->dependent ?? '') === 'rating') {
+            $stores = $stores->map(function ($store) use ($product) {
+                $productItem = $store->products->first();
+                if (!$productItem) {
+                    $store->price_rating_score = 0;
+                    return $store;
+                }
 
-            $recentPrices = $productItem->recent_prices;
-            if (!$recentPrices || $recentPrices->count() < 5) { $store->price_rating_score = 0; return $store; }
+                $recentPrices = $productItem->recent_prices;
+                if (!$recentPrices || $recentPrices->count() < 5) {
+                    $store->price_rating_score = 0;
+                    return $store;
+                }
 
-            $sorted = $recentPrices->sort()->values()->all();
-            $q1 = $this->percentile($sorted, 25);
-            $median = $this->percentile($sorted, 50);
-            $q3 = $this->percentile($sorted, 75);
-            $iqr = $q3 - $q1;
-            $upperBound = $q3 + $iqr;
+                $sorted = $recentPrices->sort()->values()->all();
+                $q1 = $this->percentile($sorted, 25);
+                $median = $this->percentile($sorted, 50);
+                $q3 = $this->percentile($sorted, 75);
+                $iqr = $q3 - $q1;
+                $upperBound = $q3 + $iqr;
 
-            if ($productItem->price <= $median) $store->price_rating_score = 3;
-            elseif ($productItem->price <= $upperBound) $store->price_rating_score = 2;
-            else $store->price_rating_score = 1;
-               return $store;
-        });
+                if ($productItem->price <= $median) $store->price_rating_score = 3;
+                elseif ($productItem->price <= $upperBound) $store->price_rating_score = 2;
+                else $store->price_rating_score = 1;
+                return $store;
+            });
 
-        // فرز حسب score
-        $stores = $stores->sortByDesc('price_rating_score')->values();
-    } else {
-        // فرز حسب المسافة إذا ما في فلتر تقييم
-        $stores = $stores->sortBy('distance')->values();
+            // فرز حسب score
+            $stores = $stores->sortByDesc('price_rating_score')->values();
+        } else {
+            // فرز حسب المسافة إذا ما في فلتر تقييم
+            $stores = $stores->sortBy('distance')->values();
+            return response()->json([
+                'message' => ApiMessage::STORES_FETCHED->value,
+                'stores' => $paginatedStores,
+            ]);
+        }
     }
 
-    // Pagination
-    $paginatedStores = new LengthAwarePaginator(
-        $stores->forPage($page, $perPage),
-        $stores->count(),
-        $perPage,
-        $page,
-        ['path' => $request->url(), 'query' => $request->query()]
-    );
+    /**
+     * Apply price rating to stores based on median pricing analysis
+     */
+    private function applyPriceRating($stores, $product)
+    {
+        return $stores->map(function ($store) use ($product) {
+            $productItem = $store->products->first();
 
-    return response()->json([
-        'message' => ApiMessage::STORES_FETCHED->value,
-        'stores' => $paginatedStores,
-    ]);
-}
-}
+            if (!$productItem) {
+                $store->price_rating = 'no_rating';
+                $store->price_rating_score = 0;
+                return $store;
+            }
 
+            $recentPrices = $productItem->recent_prices;
 
+            // Need at least 5 prices for meaningful analysis
+            if (!$recentPrices || $recentPrices->count() < 5) {
+                $store->price_rating = 'no_rating';
+                $store->price_rating_score = 0;
+                return $store;
+            }
 
-    // private function calculateDistance($lat1, $lon1, $lat2, $lon2)
-    // {
-    //     $earthRadius = 6371; // بالكيلومتر
+            $sorted = $recentPrices->sort()->values()->all();
+            $median = $this->percentile($sorted, 50);
+            $q3 = $this->percentile($sorted, 75);
+            $iqr = $q3 - $this->percentile($sorted, 25);
+            $upperBound = $q3 + $iqr;
+            // Determine price rating
+            if ($productItem->price <= $median) {
+                $store->price_rating = 'best'; // عادل - Best price
+                $store->price_rating_score = 3;
+            } elseif ($productItem->price <= $upperBound) {
+                $store->price_rating = 'good'; // جيد - Good price
+                $store->price_rating_score = 2;
+            } else {
+                $store->price_rating = 'high'; // مرتفع - High price
+                $store->price_rating_score = 1;
+            }
 
-    //     $latFrom = deg2rad($lat1);
-    //     $lonFrom = deg2rad($lon1);
-    //     $latTo = deg2rad($lat2);
-    //     $lonTo = deg2rad($lon2);
+            return $store;
+        })->sortByDesc('price_rating_score')->values();
+    }
 
-    //     $latDelta = $latTo - $latFrom;
-    //     $lonDelta = $lonTo - $lonFrom;
+    /**
+     * Calculate percentile value from sorted array
+     */
+    private function percentile($sorted, $percentile)
+    {
+        $index = ($percentile / 100) * (count($sorted) - 1);
+        $lower = floor($index);
+        $upper = ceil($index);
 
-    //     $angle = 2 * asin(sqrt(pow(sin($latDelta / 2), 2) +
-    //         cos($latFrom) * cos($latTo) * pow(sin($lonDelta / 2), 2)));
+        if ($lower == $upper) {
+            return $sorted[$lower];
+        }
 
-    //     return round($angle * $earthRadius, 2); // المسافة بالكيلومتر
-    // }
+        return $sorted[$lower] + ($index - $lower) * ($sorted[$upper] - $sorted[$lower]);
+    }
 }

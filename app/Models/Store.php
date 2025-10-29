@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Auth;
-use PhpParser\Node\Expr\Cast\Object_;
 use Storage;
 
 class Store extends Model
@@ -64,7 +63,7 @@ class Store extends Model
                     return;
                 }
 
-                $q->join('distances', function ($join) use ($userCityId) {
+                $q->leftJoin('distances', function ($join) use ($userCityId) {
                     $join->on(function ($query) use ($userCityId) {
                         $query->whereColumn('distances.city_id_one', 'stores.city_id')
                             ->where('distances.city_id_two', $userCityId)
@@ -75,14 +74,14 @@ class Store extends Model
                     });
                 })
                     ->select('stores.*', 'distances.distance')
-                    ->orderBy('distances.distance', 'asc');
+                    // Sort: Same city first (NULL distance = في منطقتك), then by numeric distance
+                    ->orderByRaw('CASE WHEN stores.city_id = ? THEN 0 ELSE CAST(distances.distance AS UNSIGNED) END ASC', [$userCityId]);
             } elseif ($value === 'rating') {
                 $q->with([
                     'products' => function ($q2) use ($product) {
                         $q2->where('product_id', $product->id);
                     }
                 ]);
-
             } elseif ($value === 'price') {
                 $q->join('products', function ($join) use ($product) {
                     $join->on('products.store_id', '=', 'stores.id')
@@ -96,17 +95,6 @@ class Store extends Model
         return $builder;
     }
 
-    // public function percentile(array $sorted, $percentile)
-    // {
-    //     $index = ($percentile / 100) * (count($sorted) - 1);
-    //     $lower = floor($index);
-    //     $upper = ceil($index);
-    //     $weight = $index - $lower;
-    //     if ($upper >= count($sorted))
-    //         return $sorted[$lower];
-    //     return $sorted[$lower] * (1 - $weight) + $sorted[$upper] * $weight;
-    // }
-
     protected function image(): Attribute
     {
         return Attribute::make(
@@ -114,16 +102,39 @@ class Store extends Model
         );
     }
 
-    public function percentile(array $sorted, $percentile)
+    // App/Models/Store.php
+    public function reliabilityScore()
     {
-        $index = ($percentile / 100) * (count($sorted) - 1);
-        $lower = floor($index);
-        $upper = ceil($index);
-        $weight = $index - $lower;
-        if ($upper >= count($sorted))
-            return $sorted[$lower];
-        return $sorted[$lower] * (1 - $weight) + $sorted[$upper] * $weight;
+        $totalReports = $this->products()->withCount('reports')->get()->sum('reports_count');
+
+        // درجة الموثوقية (مثال):
+        $score = 100 - ($totalReports * 5);
+
+        // ضبط الحد الأدنى والأقصى
+        if ($score > 100) $score = 100;
+        if ($score < 0) $score = 0;
+
+        return $score;
     }
 
+    // App\Models\Store.php
+    public function getReliabilityScoreAttribute()
+    {
+        $totalProducts = $this->products()->count();
 
+        if ($totalProducts == 0) return 5; // لو مافيش منتجات → موثوقية كاملة
+
+        $totalReports = $this->products()->withCount('reports')->get()->sum('reports_count');
+
+        // نحدد الحد الأعلى للبلاغات عشان نوزعها على 5 نجوم
+        $maxReports = $totalProducts * 5; // مثلا كل منتج ممكن يكون عنده 5 بلاغات → أقصى عدد بلاغات
+
+        // نحسب النسبة
+        $scorePercentage = 1 - min($totalReports / $maxReports, 1); // نسبة "الموثوقية"
+
+        // نحولها لنجوم من 1 إلى 5
+        $stars = max(1, round($scorePercentage * 5));
+
+        return $stars;
+    }
 }

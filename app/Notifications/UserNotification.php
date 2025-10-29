@@ -3,7 +3,6 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -19,12 +18,16 @@ class UserNotification extends Notification
     public function via(object $notifiable): array
     {
         // إصلاح الإملاء فقط
-        $channels = ['database', 'broadcast'];
-        return $channels;
+        // $channels = ['database', 'broadcast'];
+        // return $channels;
+        $channles = ['database', 'broadcast'];
+        return $channles;
     }
+
 
     public function toMail(object $notifiable): MailMessage
     {
+
         // نستخدم $this->title بدل النص العام
         return (new MailMessage)
             ->subject('تنبيه سعر منتج')

@@ -1,9 +1,8 @@
 <?php
+
 namespace App\Http\Controllers\Api\Merchant;
 
-use App\Events\NewOfferEvent;
 use App\Http\Controllers\Controller;
-use App\Models\Product;
 use Illuminate\Http\Request;
 use App\Models\Offer;
 use Illuminate\Support\Facades\Auth;
@@ -19,12 +18,13 @@ class OfferController extends Controller
             'discount_percent' => 'nullable|integer|min:1|max:100',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
+            'active' => 'sometimes|boolean',
         ]);
 
-        // 🔐 تحقق أن المنتج يخص التاجر الحالي
+        //  تحقق أن المنتج يخص التاجر الحالي
         $isOwner = Auth::user()
             ->store
-                ?->products()
+            ?->products()
             ->where('id', $validated['product_id'])
             ->exists();
 
@@ -35,9 +35,6 @@ class OfferController extends Controller
         }
 
         $offer = Offer::create($validated);
-        $product = Product::where('id', $validated['product_id'])->with('store')->first();
-        event(new NewOfferEvent($product));
-
         return response()->json([
             'message' => ApiMessage::OFFER_CREATED->value,
             'offer' => $offer
@@ -48,10 +45,10 @@ class OfferController extends Controller
     {
         $offer = Offer::findOrFail($id);
 
-        // 🔐 تحقق أن المنتج تبع التاجر
+        // تحقق أن المنتج تبع التاجر
         $isOwner = Auth::user()
             ->store
-                ?->products()
+            ?->products()
             ->where('id', $offer->product_id)
             ->exists();
 
@@ -77,33 +74,31 @@ class OfferController extends Controller
         ]);
     }
 
-public function destroy($id)
-{
-    $offer = Offer::findOrFail($id);
+    public function destroy($id)
+    {
+        $offer = Offer::with('product')->find($id);
 
-    $userStore = Auth::user()->store;
+        if (!$offer) {
+            return response()->json(['message' => 'العرض غير موجود'], 404);
+        }
 
-    // تحقق إن المستخدم عنده متجر أولاً
-    if (!$userStore) {
-        return response()->json([
-            'message' => ApiMessage::UNAUTHORIZED->value
-        ], 403);
+        $userStore = Auth::user()->store;
+
+        if (!$userStore || $offer->product->store_id !== $userStore->id) {
+            return response()->json(['message' => 'غير مخوّل'], 403);
+        }
+
+        try {
+            $offer->delete();
+            return response()->json([
+                'message' => 'تم حذف العرض بنجاح',
+                'deleted' => true
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'حدث خطأ أثناء الحذف: ' . $e->getMessage(),
+                'deleted' => false
+            ], 500);
+        }
     }
-
-    // تحقق إن العرض تابع لمتجر المستخدم فعلاً
-    $isOwner = $offer->product->store_id === $userStore->id;
-
-    if (!$isOwner) {
-        return response()->json([
-            'message' => ApiMessage::UNAUTHORIZED->value
-        ], 403);
-    }
-
-    $offer->delete();
-
-    return response()->json([
-        'message' => ApiMessage::OFFER_DELETED->value
-    ]);
-}
-
 }

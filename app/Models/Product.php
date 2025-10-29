@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Storage;
 
@@ -15,26 +14,23 @@ class Product extends Model {
     use HasFactory;
 
     protected $fillable = [ 'store_id', 'product_id', 'description', 'price', 'quantity', 'image' ];
-    protected $appends = [ 'name', 'is_favorite', 'recent_prices' ];
+    protected $appends = [ 'name', 'is_favorite', 'recent_prices', 'category_name' ];
 
     public function store() {
         return $this->belongsTo( Store::class );
     }
 
-    public function reports()
-{
-    return $this->hasMany(Report::class);
-}
+    public function reports() {
+        return $this->hasMany( Report::class );
+    }
 
-    public function category()
-    {
-        return $this->belongsTo(Category::class);
+    public function category() {
+        return $this->belongsTo( Category::class );
     }
 
     public function favorites() {
         return $this->hasMany( Favorite::class );
     }
-
 
     public function mainProduct(): BelongsTo {
         return $this->belongsTo( MainProduct::class, 'product_id' );
@@ -88,6 +84,12 @@ class Product extends Model {
                 ->pluck( 'price' );
             }
             ,
+        );
+    }
+
+    protected function categoryName(): Attribute {
+        return Attribute::make(
+            get: fn() => $this->mainProduct?->category?->name,
         );
     }
 }

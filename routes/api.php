@@ -7,7 +7,6 @@ use App\Http\Controllers\CityController;
 use App\Http\Controllers\OtpController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AdminController;
@@ -26,8 +25,9 @@ use App\Http\Controllers\Api\Customer\NotificationController;
 use App\Http\Controllers\Api\ProductController;
 use Illuminate\Support\Facades\Broadcast;
 use App\Http\Controllers\GoogleController;
+use App\Mail\TestMail;
+use Illuminate\Support\Facades\Mail;
 
-// use App\Http\Controllers\Api\Merchant\CategoryController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -52,6 +52,8 @@ Route::post('/reset-password', [ResetPasswordController::class, 'reset']);
 
 Route::post('/verify-otp', [OtpController::class, 'verify']);
 Route::get('/categories', [CategoryController::class, 'getCategories']);
+Route::get('/store/{id}/reliability-score', [StoreController::class, 'getReliabilityScore']);
+
 Route::get('/products', [ProductController::class, 'getProducts']);
 
 Route::get('/product/last-products', [ProductController::class, 'lastProduct']);
@@ -62,10 +64,10 @@ Route::get('/auth/user', function () {
     if (!$user) {
         return response()->json(['message' => 'Unauthenticated'], 401);
     }
-    return $user->load(['store', 'city']);
+    return $user->load(['store.city', 'city']);
 })->middleware('auth:sanctum');
 Route::middleware('auth:sanctum')->group(function () {
-
+    Route::get('/user/reliability-score', [CustomerController::class, 'getUserReliabilityScore']);
     Route::get('/active-notifications', [NotificationController::class, 'activeNotifications']);
     Route::patch('/notifications/mark-as-read', [NotificationController::class, 'markAsRead']);
 
@@ -146,12 +148,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/user/profile', [CustomerController::class, 'updateProfile']);
     });
     Route::patch('/user/preferences', [CustomerController::class, 'updatePreferences']);
-    // Route::patch('/user/profile', [CustomerController::class, 'updateProfile']);
 
-    // Route::get('/barters', [BarterController::class, 'publicIndex']);
     Route::get('/barters', [BarterController::class, 'index']);
     Route::get('/barters/{id}', [BarterController::class, 'show']);
-    Route::delete('/barters/{id}', [BarterController::class, 'delete']);
+    Route::delete('/barters/{id}', [BarterController::class, 'destroy']);
     Broadcast::routes(['middleware' => ['auth:sanctum']]);
     Route::middleware(['auth:sanctum'])->group(function () {
         // بدء/جلب محادثة 1:1
@@ -169,12 +169,5 @@ Route::middleware('auth:sanctum')->prefix('chat')->group(function () {
     Route::post('/messages/{conversation}', [MessageController::class, 'sendMessage']);
     Route::get('/conversations/{conversation}/get-messages', [MessageController::class, 'conversationMessages']);
     Route::get('/conversations/get-messages/{user}', [MessageController::class, 'index']);
-    Route::get('/user/reliability-score', [CustomerController::class, 'getUserReliabilityScore']);
 });
 
-// Route::get('/test',function() {
-
-// })
-
-
-// Broadcast::routes(['middleware' => ['auth:sanctum']]);

@@ -73,7 +73,6 @@ class StoreController extends Controller
             'image' => 'nullable|string',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
-            // 'status'    => 'in:active,inactive,pending',
         ]);
 
         // إذا المستخدم تاجر، لا يسمح له بتغيير الحالة
@@ -81,12 +80,6 @@ class StoreController extends Controller
             unset($validated['status']);
         }
 
-        // // إذا المستخدم تاجر، تأكد أنه صاحب المتجر
-        // if ($user->role === 'merchant' && $store->user_id !== $user->id) {
-        //     return response()->json([
-        //         'message' => ApiMessage::UNAUTHORIZED->value
-        //     ], 403);
-        // }
 
         $store->update($validated);
 
@@ -123,7 +116,20 @@ class StoreController extends Controller
         $user->store()->updateOrCreate([], $validated);
         return response()->json([
             'message' => ApiMessage::STORE_UPDATED->value,
-            'store' => $user->store
+            'store' => $user->store->load('city')
+        ]);
+    }
+
+    // App\Http\Controllers\Api\StoreController.php
+
+    public function getReliabilityScore($id)
+    {
+        $store = Store::findOrFail($id);
+
+        return response()->json([
+            'store_id' => $store->id,
+            'store_name' => $store->name,
+            'reliability_score' => $store->reliability_score, // هنا راح يرجع 1 لـ 5
         ]);
     }
 }

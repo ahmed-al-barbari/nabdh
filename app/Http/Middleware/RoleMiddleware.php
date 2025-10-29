@@ -5,7 +5,6 @@ namespace App\Http\Middleware;
 use Closure;
 use App\Enums\ApiMessage;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
 
 class RoleMiddleware {
     /**

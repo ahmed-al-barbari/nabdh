@@ -7,50 +7,39 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Notifications\Messages\BroadcastMessage;
 
 class ProductPriceUpdated extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    public function __construct(public Product $product)
-    {
-        $this->product = $product;
-    }
+    public function __construct(
+        public Product $product,
+        public float $oldPrice,
+        public float $newPrice
+    ) {}
 
-    /**
-     * Channels to send the notification
-     */
     public function via($notifiable): array
     {
         $channels = ['database', 'broadcast'];
 
-        // مثال على الإيميل إذا المستخدم مفعله
-        if ($notifiable->notification_methods['email'] ?? false) {
+        if (($notifiable->notification_methods['email'] ?? false)) {
             $channels[] = 'mail';
         }
-
-        // ممكن توسع لاحقًا لـ sms أو whats
-        // if ($notifiable->notification_methods['sms'] ?? false) { $channels[] = 'sms'; }
-        // if ($notifiable->notification_methods['whats'] ?? false) { $channels[] = 'whats'; }
 
         return $channels;
     }
 
-    /**
-     * Mail representation
-     */
     public function toMail($notifiable): MailMessage
     {
         return (new MailMessage)
             ->subject("تحديث سعر المنتج: {$this->product->name}")
-            ->line("السعر الحالي للمنتج '{$this->product->name}' أصبح {$this->product->price}₪ في {$this->product->store->name}.")
+            ->line("السعر السابق: {$this->oldPrice}₪")
+            ->line("السعر الحالي: {$this->newPrice}₪ في {$this->product->store->name}.")
             ->action('عرض المنتج', url("/products/{$this->product->id}"))
             ->line('شكراً لاستخدامك تطبيقنا!');
     }
 
-    /**
-     * Database / Broadcast representation
-     */
     public function toArray($notifiable): array
     {
         return [
@@ -58,7 +47,18 @@ class ProductPriceUpdated extends Notification implements ShouldQueue
             'product_id' => $this->product->id,
             'product_name' => $this->product->name,
             'store_name' => $this->product->store->name,
-            'new_price' => $this->product->price,
+            'old_price' => $this->oldPrice,
+            'new_price' => $this->newPrice,
         ];
+    }
+
+    public function toBroadcast($notifiable)
+    {
+        return new BroadcastMessage([
+            'product_id' => $this->product->id,
+            'old_price' => $this->oldPrice,
+            'new_price' => $this->newPrice,
+            'product_name' => $this->product->name,
+        ]);
     }
 }

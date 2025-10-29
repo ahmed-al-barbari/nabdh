@@ -29,7 +29,6 @@ class UserController extends Controller {
                 return response()->json( [ 'message' => 'Current password is incorrect' ], 400 );
             }
             unset( $validated[ 'current_password' ] );
-            // Let the User model's Attribute handle password hashing automatically
         }
 
         $user->update( $validated );
@@ -42,7 +41,7 @@ class UserController extends Controller {
 
         return response()->json( [
             'message' => 'User updated successfully',
-            'user' => $user
+            'user' => $user->load(['store.city', 'city'])
         ] );
     }
 }
