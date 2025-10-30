@@ -97,4 +97,50 @@ class CustomerController extends Controller {
             'user'    => $user->load( 'store' )
         ] );
     }
+
+    /**
+     * حساب درجة موثوقية المستخدم
+     */
+    public function getUserReliabilityScore()
+    {
+        $user = auth()->user(); // المستخدم المسجل دخول
+
+        $score = 0;
+
+        // 1️⃣ رقم الهاتف (20%)
+        $score += $user->phone ? 20 : 0;
+
+        // 2️⃣ المقايضات المكتملة (40%)
+        $totalTrades = \App\Models\BarterResponse::where('user_id', $user->id)->count();
+        $completedTrades = \App\Models\BarterResponse::where('user_id', $user->id)
+            ->where('status', 'completed')
+            ->count();
+        $tradeScore = $totalTrades > 0 ? ($completedTrades / $totalTrades) * 40 : 0;
+        $score += $tradeScore;
+
+        // 3️⃣ البلاغات + تقييم المنتجات (40%)
+        $productScores = [];
+
+        foreach ($user->store?->products ?? [] as $product) {
+            // استخدام قيمة افتراضية 4 إذا ما فيه rating
+            $productRating = $product->rating ?? 4;
+            if ($productRating <= 3) continue; // فقط المنتجات بتقييم > 3
+
+            $totalReports = $product->reports->count();
+            $completedReports = $product->reports->where('status', 'completed')->count();
+
+            // إذا ما فيه تقارير، نعتبرها كاملة (1)
+            $productScore = $totalReports > 0 ? ($completedReports / $totalReports) : 1;
+            $productScores[] = $productScore;
+        }
+
+        // إذا ما فيه منتجات محسوبة، نعتبر 100%
+        $averageProductScore = count($productScores) > 0 ? array_sum($productScores) / count($productScores) : 1;
+        $score += $averageProductScore * 40;
+
+        return response()->json([
+            'message' => 'User reliability score fetched successfully',
+            'score' => round($score, 2) // قيمة بين 0 و 100
+        ]);
+    }
 }

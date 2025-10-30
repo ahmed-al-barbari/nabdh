@@ -25,8 +25,8 @@ class UserNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        $channles = ['database', 'broadcast'];
-        return $channles;
+        $channels = ['database', 'broadcast'];
+        return $channels;
     }
 
     /**

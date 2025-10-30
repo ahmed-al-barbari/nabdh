@@ -164,5 +164,5 @@ Route::middleware('auth:sanctum')->prefix('chat')->group(function () {
     Route::post('/messages/{conversation}', [MessageController::class, 'sendMessage']);
     Route::get('/conversations/{conversation}/get-messages', [MessageController::class, 'conversationMessages']);
     Route::get('/conversations/get-messages/{user}', [MessageController::class, 'index']);
-
+    Route::get('/user/reliability-score', [CustomerController::class, 'getUserReliabilityScore']);
 });
