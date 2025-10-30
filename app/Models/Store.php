@@ -122,7 +122,7 @@ class Store extends Model
     {
         $totalProducts = $this->products()->count();
 
-        if ($totalProducts == 0) return 5; // لو مافيش منتجات → موثوقية كاملة
+        if ($totalProducts == 0) return 1; // لو مافيش منتجات → موثوقية 1
 
         $totalReports = $this->products()->withCount('reports')->get()->sum('reports_count');
 

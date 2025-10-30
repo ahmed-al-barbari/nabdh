@@ -96,16 +96,16 @@ class ProductController extends Controller
 
         if (isset($validated['price']) && $validated['price'] != $oldPrice) {
             $users = User::whereHas('userNotifications', function ($q) use ($product) {
-                $q->where('product_id', $product->id)
+                $q->where('product_id', $product->product_id)
                     ->where('status', 'active');
             })->get();
 
             foreach ($users as $user) {
                 $targetPrice = $user->userNotifications()
-                    ->where('product_id', $product->id)
+                    ->where('product_id', $product->product_id)
                     ->value('target_price');
                 $alertType = $user->userNotifications()
-                    ->where('product_id', $product->id)
+                    ->where('product_id', $product->product_id)
                     ->value('type'); // lt أو gt
 
                 $shouldNotify = false;
@@ -117,6 +117,8 @@ class ProductController extends Controller
                 }
             }
         }
+
+        event(new \App\Events\PriceUpdated($product->product_id, $newPrice, $product->name));
 
         return response()->json([
             'message' => 'Product updated successfully',

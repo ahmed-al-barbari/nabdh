@@ -9,46 +9,55 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Broadcasting\InteractsWithSockets;
 
-class PriceUpdated implements ShouldBroadcast {
+class PriceUpdated implements ShouldBroadcast
+{
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $productId;
     public $newPrice;
+    public $productName;
 
     /**
-    * Create a new event instance.
-    */
+     * Create a new event instance.
+     */
 
-    public function __construct( $productId, $newPrice ) {
+    public function __construct($productId, $newPrice,$productName)
+    {
         $this->productId = $productId;
         $this->newPrice = $newPrice;
+        $this->productName=$productName;
     }
 
     /**
-    * القناة اللي هيتم البث عليها
-    */
+     * القناة اللي هيتم البث عليها
+     */
 
-    public function broadcastOn() {
-        return new Channel( 'prices' );
+    public function broadcastOn()
+    {
+        return new Channel('prices');
         // قناة عامة اسمها prices
     }
 
     /**
-    * اسم الحدث اللي هيتبث على القناة
-    */
+     * اسم الحدث اللي هيتبث على القناة
+     */
 
-    public function broadcastAs() {
+    public function broadcastAs()
+    {
         return 'PriceUpdated';
     }
 
     /**
-    * البيانات اللي هيستقبلها الطرف التاني ( الواجهة )
-    */
+     * البيانات اللي هيستقبلها الطرف التاني ( الواجهة )
+     */
 
-    public function broadcastWith() {
+    public function broadcastWith()
+    {
         return [
             'product_id' => $this->productId,
             'new_price' => $this->newPrice,
+            'product_name' => $this->productName ?? null,
+            'store_name' => $this->storeName ?? null,
         ];
     }
 }

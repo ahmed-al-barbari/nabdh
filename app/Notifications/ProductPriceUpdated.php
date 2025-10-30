@@ -9,9 +9,9 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 
-class ProductPriceUpdated extends Notification implements ShouldQueue
+class ProductPriceUpdated extends Notification
 {
-    use Queueable;
+
 
     public function __construct(
         public Product $product,
@@ -19,21 +19,27 @@ class ProductPriceUpdated extends Notification implements ShouldQueue
         public float $newPrice
     ) {}
 
+    //  public function via($notifiable): array
+    // {
+    //     $channels = ['database', 'broadcast'];
+
+    //     if (($notifiable->notification_methods['email'] ?? false)) {
+    //         $channels[] = 'mail';
+    //     }
+
+    //     return $channels;
+    // }
+
     public function via($notifiable): array
     {
-        $channels = ['database', 'broadcast'];
-
-        if (($notifiable->notification_methods['email'] ?? false)) {
-            $channels[] = 'mail';
-        }
-
-        return $channels;
+        return ['mail', 'database', 'broadcast'];
     }
+
 
     public function toMail($notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject("تحديث سعر المنتج: {$this->product->name}")
+            ->subject("تحديث سعر المنتج: {$this->product->description}")
             ->line("السعر السابق: {$this->oldPrice}₪")
             ->line("السعر الحالي: {$this->newPrice}₪ في {$this->product->store->name}.")
             ->action('عرض المنتج', url("/products/{$this->product->id}"))

@@ -120,8 +120,6 @@ class StoreController extends Controller
         ]);
     }
 
-    // App\Http\Controllers\Api\StoreController.php
-
     public function getReliabilityScore($id)
     {
         $store = Store::findOrFail($id);
