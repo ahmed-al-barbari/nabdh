@@ -14,7 +14,7 @@ class AdminNotification extends Notification
      */
     public function __construct(public string $title, public string $text, public string $icon)
     {
-        //
+        // initialize admin notification with title, text, and icon
     }
 
     /**

@@ -15,6 +15,6 @@ class NewStoreEvent {
     */
 
     public function __construct( public Store $store ) {
-        //
+        // initialize new store event
     }
 }

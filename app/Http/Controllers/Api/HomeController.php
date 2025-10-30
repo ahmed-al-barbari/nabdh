@@ -38,7 +38,7 @@ class HomeController extends Controller {
     */
 
     public function store( Request $request ) {
-        //
+        // store home data
     }
 
     /**
@@ -46,7 +46,7 @@ class HomeController extends Controller {
     */
 
     public function show( string $id ) {
-        //
+        // show specific home data
     }
 
     /**
@@ -54,7 +54,7 @@ class HomeController extends Controller {
     */
 
     public function update( Request $request, string $id ) {
-        //
+        // update home data
     }
 
     /**
@@ -62,7 +62,7 @@ class HomeController extends Controller {
     */
 
     public function destroy( string $id ) {
-        //
+        // delete home data
     }
 
 }

@@ -7,14 +7,11 @@ use App\Models\User;
 use App\Notifications\AdminNotification;
 use Notification;
 
-class ChageUserRole {
+class ChangeUserRole {
     /**
     * Create the event listener.
     */
 
-    public function __construct() {
-        //
-    }
 
     /**
     * Handle the event.

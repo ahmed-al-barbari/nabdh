@@ -71,7 +71,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('user/delete-account', [AuthController::class, 'deleteAccount'])->middleware('auth:sanctum');
 
 
-    Route::put('/barters/{barter}/mark-as-completed', [BarterController::class, 'markAsCompeleted'])->middleware('auth:sanctum');
+    Route::put('/barters/{barter}/mark-as-completed', [BarterController::class, 'markAsCompleted'])->middleware('auth:sanctum');
     Route::post('/barters/{barter}/respond', [BarterController::class, 'respond'])->middleware('auth:sanctum');
     Route::post('/barters/{barter}/respond/{response}', [BarterController::class, 'acceptResponse'])->middleware('auth:sanctum');
 

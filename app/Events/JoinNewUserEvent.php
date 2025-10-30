@@ -15,6 +15,6 @@ class JoinNewUserEvent {
     */
 
     public function __construct( public User $user ) {
-        //
+        // initialize join new user event
     }
 }

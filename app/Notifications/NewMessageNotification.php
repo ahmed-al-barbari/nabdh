@@ -15,7 +15,7 @@ class NewMessageNotification extends Notification
      */
     public function __construct()
     {
-        //
+        // initialize new message notification
     }
 
     /**
@@ -47,7 +47,7 @@ class NewMessageNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            //
+            // Define notification data here
         ];
     }
 }

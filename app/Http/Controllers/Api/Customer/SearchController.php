@@ -17,7 +17,7 @@ class SearchController extends Controller
         $page = $request->input('page', 1);
         $filter = json_decode($request->filter);
 
-        // Get stores that have the specified product
+        // get stores that have the specified product
         $stores = Store::whereRelation('products', function ($q) use ($product) {
             return $q->where('product_id', $product->id);
         })->with([
@@ -29,12 +29,12 @@ class SearchController extends Controller
             ->filter($filter, $product)
             ->get();
 
-        // Apply price rating if rating filter is selected
+        // apply price rating if rating filter is selected
         if (!empty($filter) && strtolower($filter->dependent ?? '') === 'rating') {
             $stores = $this->applyPriceRating($stores, $product);
         }
 
-        // Paginate results
+        // paginate results
         $paginatedStores = new LengthAwarePaginator(
             $stores->forPage($page, $perPage),
             $stores->count(),
@@ -65,7 +65,7 @@ class SearchController extends Controller
 
             $recentPrices = $productItem->recent_prices;
 
-            // Need at least 5 prices for meaningful analysis
+            // need at least 5 prices for meaningful analysis
             if (!$recentPrices || $recentPrices->count() < 5) {
                 $store->price_rating = 'no_rating';
                 $store->price_rating_score = 0;
@@ -77,7 +77,7 @@ class SearchController extends Controller
             $q3 = $this->percentile($sorted, 75);
             $iqr = $q3 - $this->percentile($sorted, 25);
             $upperBound = $q3 + $iqr;
-            // Determine price rating
+            // determine price rating
             if ($productItem->price <= $median) {
                 $store->price_rating = 'best'; // عادل - Best price
                 $store->price_rating_score = 3;

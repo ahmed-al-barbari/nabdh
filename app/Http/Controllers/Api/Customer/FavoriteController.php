@@ -45,7 +45,7 @@ class FavoriteController extends Controller {
     */
 
     public function show( string $id ) {
-        //
+        // show specific favorite
     }
 
     /**
@@ -53,7 +53,7 @@ class FavoriteController extends Controller {
     */
 
     public function update( Request $request, string $id ) {
-        //
+        // update favorite
     }
 
     /**

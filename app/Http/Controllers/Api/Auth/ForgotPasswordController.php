@@ -37,7 +37,7 @@ class ForgotPasswordController extends Controller
             Mail::to($user->email)->send(new ResetPasswordMail($user, $resetUrl));
         }
 
-        // Always respond with the same message (security: non-enumeration)
+        // always respond with the same message (security: non-enumeration)
         return response()->json([
             'message' => 'If the account exists, a reset link has been sent to the email.'
         ]);

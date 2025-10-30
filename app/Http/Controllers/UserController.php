@@ -33,8 +33,6 @@ class UserController extends Controller {
 
         $user->update( $validated );
 
-        info( 'no role' );
-        info( $user->isDirty() == true ? 'true' : 'fasel' );
         if ( $user->isDirty( 'role' ) ) {
             event( new ChangeUserRoleEvent( $user ) );
         }

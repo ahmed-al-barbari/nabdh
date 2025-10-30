@@ -11,6 +11,6 @@ class PreventRequestsDuringMaintenance extends Middleware {
     * @var array<int, string>
     */
     protected $except = [
-        //
+        // add routes to exclude from maintenance mode
     ];
 }

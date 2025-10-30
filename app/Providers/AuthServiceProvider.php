@@ -11,7 +11,7 @@ class AuthServiceProvider extends ServiceProvider {
     * @var array<class-string, class-string>
     */
     protected $policies = [
-        //
+        // Define model policies here
     ];
 
     /**
@@ -19,6 +19,6 @@ class AuthServiceProvider extends ServiceProvider {
     */
 
     public function boot(): void {
-        //
+        // Configure authentication services here
     }
 }

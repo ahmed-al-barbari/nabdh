@@ -35,7 +35,7 @@ class EventServiceProvider extends ServiceProvider {
             \App\Listeners\NewStore::class,
         ],
         ChangeUserRoleEvent::class => [
-            \App\Listeners\ChageUserRole::class,
+            \App\Listeners\ChangeUserRole::class,
         ],
         NewOfferEvent::class => [
             \App\Listeners\NewOffer::class,
@@ -47,7 +47,7 @@ class EventServiceProvider extends ServiceProvider {
     */
 
     public function boot(): void {
-        //
+        // Configure event listeners here
     }
 
     /**

@@ -15,6 +15,6 @@ class ChangeUserRoleEvent {
     */
 
     public function __construct( public User $user ) {
-        //
+        // initialize change user role event
     }
 }

@@ -15,7 +15,7 @@ class UserNotification extends Notification
      */
     public function __construct(public string $title, public string $status)
     {
-        //
+        // initialize notification with title and status
     }
 
     /**

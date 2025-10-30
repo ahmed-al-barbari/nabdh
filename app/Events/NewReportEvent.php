@@ -16,6 +16,6 @@ class NewReportEvent {
     */
 
     public function __construct( public Product $product, public User $user ) {
-        //
+        // initialize new report event
     }
 }

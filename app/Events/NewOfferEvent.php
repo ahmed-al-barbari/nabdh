@@ -15,6 +15,6 @@ class NewOfferEvent {
     */
 
     public function __construct( public Product $product ) {
-        //
+        // initialize new offer event
     }
 }

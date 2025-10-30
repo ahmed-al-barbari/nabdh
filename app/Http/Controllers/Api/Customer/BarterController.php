@@ -212,7 +212,7 @@ class BarterController extends Controller
         ]);
     }
 
-    public function markAsCompeleted(Barter $barter)
+    public function markAsCompleted(Barter $barter)
     {
 
         $barter->update([

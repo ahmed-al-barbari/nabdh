@@ -15,7 +15,7 @@ class UserNotification {
     */
 
     public function __construct( public Product $product ) {
-        //
+        // initialize user notification event
     }
 
 }
