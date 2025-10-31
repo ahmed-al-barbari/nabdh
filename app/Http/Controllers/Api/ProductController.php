@@ -93,7 +93,7 @@ class ProductController extends Controller
             'image' => 'sometimes|file|image|max:2048',
         ]);
 
-        //   نحفظ السعر القديم عشان نقارن
+        // ✅ نحفظ السعر القديم للمقارنة
         $oldPrice = $product->price;
 
         //   تحديث المنتج
@@ -101,6 +101,7 @@ class ProductController extends Controller
 
         //   لو السعر تغيّر فعلاً → نبثّ الحدث و نرسل الإيميل
         if (isset($validated['price']) && $validated['price'] != $oldPrice) {
+            // إطلاق الحدث
             event(new PriceUpdated($product->id, $product->price));
 
             //  إرسال إيميل لمتابعي المنتج
@@ -108,8 +109,9 @@ class ProductController extends Controller
                 $q->where('product_id', $product->id);
             })->get();
 
+            // إرسال الإشعارات حسب إعدادات المستخدم
             foreach ($users as $user) {
-                Mail::to($user->email)->send(new PriceUpdatedMail($product));
+                $user->notify(new \App\Notifications\ProductPriceUpdated($product));
             }
         }
 
