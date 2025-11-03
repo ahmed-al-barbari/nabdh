@@ -103,6 +103,9 @@ class ProductController extends Controller
         if (isset($validated['price']) && $validated['price'] != $oldPrice) {
             // إطلاق الحدث
             event(new PriceUpdated($product->id, $product->price));
+            
+            // 🔔 إطلاق حدث التنبيهات للمستخدمين (CRITICAL FIX)
+            event(new UserNotification($product));
 
             //  إرسال إيميل لمتابعي المنتج
             $users = User::whereHas('favorites', function ($q) use ($product) {
@@ -110,6 +113,7 @@ class ProductController extends Controller
             })->get();
 
             // إرسال الإشعارات حسب إعدادات المستخدم
+            /** @var User $user */
             foreach ($users as $user) {
                 $user->notify(new \App\Notifications\ProductPriceUpdated($product));
             }

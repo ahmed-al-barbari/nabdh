@@ -1,66 +1,319 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Nabdh Backend API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+This is the backend for Nabd, a platform built to help people in the Gaza Strip find essential commodities and track their prices during the ongoing supply crisis. With commercial crossings closed and goods scarce, this system helps connect people who need basic necessities with those who have them available.
 
-## About Laravel
+## What This Platform Does
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Nabd tracks essential commodity prices in real-time and helps people locate where they can find flour, sugar, cooking oil, and other critical supplies. The platform lets vendors list what they have available, allows people to exchange goods when cash isn't an option, and keeps everyone informed about price changes and product availability.
 
--   [Simple, fast routing engine](https://laravel.com/docs/routing).
--   [Powerful dependency injection container](https://laravel.com/docs/container).
--   Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
--   Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
--   Database agnostic [schema migrations](https://laravel.com/docs/migrations).
--   [Robust background job processing](https://laravel.com/docs/queues).
--   [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## The Four Core Modules
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+**Admin Dashboard** - Manages the entire system including verifying vendors to ensure legitimacy, updating commodity data, monitoring platform activity, and maintaining data integrity so people can trust the information they see.
 
-## Learning Laravel
+**Exchange Module** - Enables item-for-item trading when money isn't available. People can propose exchanges, negotiate through the platform, and complete trades to get what they need.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+**Notifications System** - Keeps users informed through the platform, email, and SMS/WhatsApp about price updates, when essential items become available, and vendor verification status.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+**Home Page Backend** - Powers the main interface with product listings, city-based filtering, recent updates, and optimized data delivery for low-bandwidth conditions common in Gaza.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Technical Foundation
 
-## Laravel Sponsors
+Built with Laravel 10 using these key components:
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+- Laravel Sanctum for secure API authentication
+- Pusher for real-time price updates and messaging
+- Spatie Laravel Permission for role management (admin, vendor, user)
+- Twilio SDK for SMS notifications about critical updates
+- Laravel Socialite for simplified Google login
+- MySQL for reliable data storage
+- Redis for caching to reduce bandwidth usage
 
-### Premium Partners
+## Getting Started
 
--   **[Vehikl](https://vehikl.com/)**
--   **[Tighten Co.](https://tighten.co)**
--   **[WebReinvent](https://webreinvent.com/)**
--   **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
--   **[64 Robots](https://64robots.com)**
--   **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
--   **[Cyber-Duck](https://cyber-duck.co.uk)**
--   **[DevSquad](https://devsquad.com/hire-laravel-developers)**
--   **[Jump24](https://jump24.co.uk)**
--   **[Redberry](https://redberry.international/laravel/)**
--   **[Active Logic](https://activelogic.com)**
--   **[byte5](https://byte5.de)**
--   **[OP.GG](https://op.gg)**
+You need PHP 8.1 or higher, Composer, MySQL, and Node.js installed.
 
-## Contributing
+Navigate to the nabdh folder:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+cd nabdh
+```
 
-## Code of Conduct
+Install dependencies:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+composer install
+```
 
-## Security Vulnerabilities
+Copy the environment template:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+cp .env.example .env
+```
 
-## License
+Configure your .env file with database and service credentials:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```env
+APP_NAME=Nabd
+APP_URL=http://localhost:8000
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=nabd_db
+DB_USERNAME=root
+DB_PASSWORD=your_password
+
+PUSHER_APP_ID=your_app_id
+PUSHER_APP_KEY=your_key
+PUSHER_APP_SECRET=your_secret
+PUSHER_APP_CLUSTER=your_cluster
+
+TWILIO_SID=your_twilio_sid
+TWILIO_AUTH_TOKEN=your_twilio_token
+TWILIO_PHONE_NUMBER=your_twilio_number
+
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_secret
+GOOGLE_REDIRECT_URI=http://localhost:8000/api/auth/google/callback
+```
+
+Generate your application key:
+
+```bash
+php artisan key:generate
+```
+
+Set up the database:
+
+```bash
+php artisan migrate
+```
+
+Load initial data including essential commodity categories and Gaza cities:
+
+```bash
+php artisan db:seed
+```
+
+This creates the admin account, sets up categories for essential goods like flour, sugar, oil, rice, and loads Gaza Strip city data.
+
+Link storage for product images:
+
+```bash
+php artisan storage:link
+```
+
+Start the server:
+
+```bash
+php artisan serve
+```
+
+The API runs at http://localhost:8000
+
+## Database Structure
+
+**User** - Everyone using the platform (regular users, vendors, admins) with role-based access
+
+**Store** - Vendor locations selling essential commodities, requires admin verification before appearing publicly
+
+**Product** - Essential items listed with current prices and availability
+
+**Category** - Essential commodity types (flour, sugar, cooking oil, rice, etc.)
+
+**City** - Gaza Strip cities and neighborhoods for location-based searches
+
+**Barter** - Exchange proposals when people need to trade items instead of buying
+
+**BarterOffer** - Specific items offered in an exchange
+
+**BarterMessage** - Negotiation messages between people arranging trades
+
+**Conversation** - Direct chat between users and vendors
+
+**Message** - Individual messages within conversations
+
+**Favorite** - Items people track to monitor price changes
+
+**Report** - User reports about incorrect prices or suspicious vendors
+
+**UserNotification** - All notification types including price alerts and availability updates
+
+**PasswordOtp** - Verification codes for account security
+
+## User Roles
+
+**Regular User** - Browse commodities, track prices, save favorites, propose exchanges, chat with vendors
+
+**Vendor** - List essential goods they have available, set prices, respond to exchange offers, must be verified by admin
+
+**Admin** - Verify new vendors, monitor prices for accuracy, manage categories, handle reports, maintain platform integrity
+
+## Core API Routes
+
+All routes start with /api. Most require authentication through Sanctum tokens.
+
+**Public Access:**
+- POST /register - Create account
+- POST /login - Sign in and get token
+- POST /forgot-password - Reset password request
+- POST /reset-password - Complete password reset
+- GET /categories - Essential commodity categories
+- GET /products - Browse available items
+- GET /auth/google - Google sign-in option
+
+**User Routes (authenticated):**
+- GET /customer/stores - Find vendors by location
+- POST /customer/barters - Propose an exchange
+- GET /customer/barters - View your exchange offers
+- PUT /customer/barters/{id}/respond - Respond to exchange proposal
+- POST /customer/favorites - Track item for price alerts
+- DELETE /customer/favorites/{id} - Stop tracking item
+- GET /customer/notifications - Get your notifications
+- PATCH /notifications/mark-as-read - Mark notifications read
+- GET /products - Browse essential commodities with filters
+- GET /search/stores/{product} - Find where specific items are available
+
+**Vendor Routes (authenticated vendors):**
+- PUT /merchant/store - Register or update vendor information
+- POST /merchant/products - List new essential item
+- PUT /merchant/products/{id} - Update price or availability
+- DELETE /merchant/products/{id} - Remove listing
+- GET /merchant/offers - View incoming exchange proposals
+- PUT /merchant/offers/{id} - Accept or decline exchanges
+
+**Admin Routes (authenticated admins):**
+- GET /admin/dashboard - Platform statistics and monitoring
+- GET /admin/stores - Pending vendor verifications
+- PUT /admin/stores/{id} - Approve or reject vendors
+- GET /admin/products - Review commodity listings
+- PUT /admin/products/{id} - Edit or remove listings
+- POST /admin/categories - Add essential commodity category
+- PUT /admin/categories/{id} - Update category
+- DELETE /admin/categories/{id} - Remove category
+- GET /admin/reports - User-submitted reports
+- PUT /admin/reports/{id} - Handle report
+- GET /admin/users - User management
+- PUT /admin/users/{id} - Update user or change role
+
+**Messaging Routes (authenticated):**
+- GET /conversations - Your conversations
+- POST /conversations - Start conversation with vendor
+- GET /conversations/{id}/messages - Load messages
+- POST /conversations/{id}/messages - Send message
+
+## Real-Time Updates
+
+Using Laravel broadcasting with Pusher for immediate notifications:
+
+**Price changes** - Users tracking items get instant alerts when prices update
+
+**New availability** - Notifications when tracked items become available
+
+**Exchange offers** - Immediate notification when someone proposes a trade
+
+**Messages** - Real-time chat delivery
+
+**Admin alerts** - New vendor registrations, reports, or urgent issues
+
+**Vendor verification** - Vendors notified immediately when approved
+
+Critical for low-bandwidth environments because users don't need to constantly refresh.
+
+## Authentication
+
+Sanctum provides API tokens after login. The frontend includes this token in all authenticated requests.
+
+Google OAuth offers quick sign-in without creating passwords.
+
+Phone verification through Twilio adds security and confirms real users.
+
+## File Storage
+
+Product images stored in storage/app/public. Run `php artisan storage:link` to make them accessible.
+
+Images are optimized for low-bandwidth delivery to work better under Gaza's internet conditions.
+
+## Email and SMS Testing
+
+Mailpit (included as mailpit.exe) lets you test emails locally without sending real ones. Run it and check http://localhost:8025 to see outgoing messages.
+
+Twilio handles SMS notifications for critical updates like price drops on tracked items or new availability of scarce commodities.
+
+## Background Jobs
+
+Email sending and notifications run through Laravel queues to keep the API responsive.
+
+Local development runs synchronously. Production should use:
+
+```bash
+php artisan queue:work
+```
+
+Set QUEUE_CONNECTION to database or redis in .env for production.
+
+## Testing
+
+Run tests with:
+
+```bash
+php artisan test
+```
+
+## Common Issues
+
+**Database connection fails** - Verify MySQL is running and .env credentials are correct
+
+**Storage link broken** - Run `php artisan storage:link` again
+
+**Pusher not connecting** - Check credentials and that BROADCAST_DRIVER is set to pusher in .env
+
+**Permission errors** - Ensure storage and bootstrap/cache are writable
+
+**Fresh start needed** - Run `php artisan migrate:fresh --seed` to reset everything
+
+## Code Organization
+
+**app/Http/Controllers** - Handles all API requests organized by feature
+
+**app/Models** - Database models with relationships
+
+**app/Services** - Business logic like price rating calculations and SMS delivery
+
+**app/Events** - Triggered when important things happen
+
+**app/Listeners** - Respond to events by sending notifications or updating data
+
+**app/Notifications** - Email, platform, and SMS notification classes
+
+**app/Mail** - Email templates
+
+**database/migrations** - Database structure definitions
+
+**database/seeders** - Initial data including Gaza cities and essential commodity categories
+
+**routes/api.php** - All API endpoint definitions
+
+**routes/channels.php** - Broadcasting authorization
+
+## Security Considerations
+
+Use HTTPS in production. Never commit .env to version control. Keep dependencies updated. Use strong passwords. Verify vendors carefully before approval. Monitor reports for suspicious activity. Rate limit API calls to prevent abuse.
+
+## Performance for Low-Bandwidth
+
+Enable Redis caching to reduce database queries. Optimize images before storage. Use query result caching for frequently accessed data. Enable Laravel's response caching for static data. Minimize payload sizes in API responses. Implement pagination for large lists.
+
+## Deployment
+
+For production deployment:
+
+Set APP_ENV=production and APP_DEBUG=false. Run `composer install --optimize-autoloader --no-dev`. Cache configurations with `php artisan config:cache` and `php artisan route:cache`. Ensure queue workers run continuously. Set up database backups. Configure web server to serve from public directory. Enable SSL. Monitor logs and performance. Consider CDN for static assets if bandwidth allows.
+
+## Platform Purpose
+
+This platform exists to help people in Gaza find essential commodities during an unprecedented supply crisis. Every feature prioritizes reliability, low bandwidth usage, and connecting people with the goods they desperately need. The exchange system helps when money is scarce. The verification system builds trust when misinformation could be dangerous. The notification system ensures people know immediately when critical items become available.
+
+## Need Help
+
+Check storage/logs/laravel.log for error details. Review Laravel documentation for framework issues. Consult Pusher docs for real-time problems. Check Sanctum docs for authentication questions.
