@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Offer;
 use Illuminate\Support\Facades\Auth;
 use App\Enums\ApiMessage;
+use App\Events\NewOfferEvent;
 
 class OfferController extends Controller {
     public function store( Request $request ) {
@@ -32,6 +33,13 @@ class OfferController extends Controller {
         }
 
         $offer = Offer::create( $validated );
+        
+        // Fire event to notify users about new offer
+        $product = $offer->product()->with('store')->first();
+        if ($product) {
+            event(new NewOfferEvent($product));
+        }
+        
         return response()->json( [
             'message' => ApiMessage::OFFER_CREATED->value,
             'offer' => $offer

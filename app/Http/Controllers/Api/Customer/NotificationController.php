@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\UserNotification;
+use App\Models\Product;
 use App\Enums\ApiMessage;
 
 class NotificationController extends Controller {
@@ -31,10 +32,76 @@ class NotificationController extends Controller {
 
         $notification = UserNotification::create( [ ...$validated, 'status' => 'active', 'user_id' => $user->id ] );
 
-        return response()->json( [
+        // Check if any existing products already meet the alert condition
+        $matchingProducts = $this->checkExistingPrices(
+            $validated['product_id'],
+            $validated['type'],
+            $validated['target_price']
+        );
+
+        // Prepare response data
+        $responseData = [
             'message' => ApiMessage::NOTIFICATION_CREATED->value,
-            'notification' => $notification
-        ], 201 );
+            'notification' => $notification,
+            'existing_matches' => []
+        ];
+
+        // If we found matching products, notify the user immediately
+        if ($matchingProducts->isNotEmpty()) {
+            $responseData['existing_matches'] = $matchingProducts->map(function($product) use ($validated) {
+                return [
+                    'product_name' => $product->name,
+                    'store_name' => $product->store->name,
+                    'current_price' => $product->price,
+                    'target_price' => $validated['target_price'],
+                    'city' => $product->store->city->name ?? null,
+                ];
+            });
+
+            // Send real-time notification to user about existing matches
+            $matchCount = $matchingProducts->count();
+            $firstProduct = $matchingProducts->first();
+            $productName = $firstProduct->mainProduct->name ?? 'المنتج';
+            $lowestPrice = $validated['type'] === 'lt' 
+                ? $matchingProducts->min('price') 
+                : $matchingProducts->max('price');
+            
+            $notificationTitle = $validated['type'] === 'lt'
+                ? "وجدنا {$matchCount} عرض ل{$productName} بسعر {$lowestPrice}₪ أو أقل"
+                : "وجدنا {$matchCount} عرض ل{$productName} بسعر {$lowestPrice}₪ أو أكثر";
+            
+            $status = $validated['type'];
+            
+            // Send notification to user
+            $user->notify(new \App\Notifications\UserNotification($notificationTitle, $status));
+        }
+
+        return response()->json($responseData, 201);
+    }
+
+    /**
+     * Check existing product prices against alert condition
+     * Highly efficient - only queries products with specific product_id
+     */
+    private function checkExistingPrices($productId, $type, $targetPrice) {
+        $query = Product::with(['store.city', 'mainProduct'])
+            ->where('product_id', $productId)
+            ->whereHas('store', function($q) {
+                $q->where('status', 'accepted'); // Only verified stores
+            });
+
+        // Apply price condition based on alert type
+        if ($type === 'lt') {
+            // Looking for prices LOWER than target
+            $query->where('price', '<', $targetPrice);
+        } else {
+            // Looking for prices GREATER than target
+            $query->where('price', '>', $targetPrice);
+        }
+
+        return $query->orderBy('price', $type === 'lt' ? 'asc' : 'desc')
+            ->limit(10) // Only return top 10 matches for efficiency
+            ->get();
     }
 
     public function update( Request $request, $id ) {

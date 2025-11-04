@@ -61,13 +61,36 @@ class PriceRatingService {
     }
 
     /**
-    * حساب percentile
+    * حساب percentile (robust implementation with bounds checking)
     */
 
     private function calculatePercentile( array $sortedArray, int $percentile ): float {
-        $index = ( $percentile / 100 ) * ( count( $sortedArray ) - 1 );
-        $lower = $sortedArray[ floor( $index ) ];
-        $upper = $sortedArray[ ceil( $index ) ];
-        return $lower + ( $upper - $lower ) * ( $index - floor( $index ) );
+        $count = count( $sortedArray );
+        if ( $count === 0 ) {
+            return 0;
+        }
+        
+        if ( $count === 1 ) {
+            return $sortedArray[0];
+        }
+
+        $index = ( $percentile / 100 ) * ( $count - 1 );
+        $lowerIndex = (int)floor( $index );
+        $upperIndex = (int)ceil( $index );
+        
+        // Ensure indices are within bounds (critical fix)
+        $lowerIndex = max( 0, min( $lowerIndex, $count - 1 ) );
+        $upperIndex = max( 0, min( $upperIndex, $count - 1 ) );
+        
+        $lower = $sortedArray[ $lowerIndex ];
+        $upper = $sortedArray[ $upperIndex ];
+        
+        if ( $lowerIndex === $upperIndex ) {
+            return $lower;
+        }
+        
+        // Linear interpolation
+        $weight = $index - $lowerIndex;
+        return $lower + $weight * ( $upper - $lower );
     }
 }

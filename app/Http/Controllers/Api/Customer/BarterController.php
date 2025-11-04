@@ -36,7 +36,9 @@ class BarterController extends Controller
 
         $barters = Barter::with([
             'user' => function ($query) {
-                $query->withCount([
+                $query->with(['store' => function ($q) {
+                    $q->with(['user', 'products.reports']);
+                }])->withCount([
                     'barters as batar_count' => function ($q) {
                         $q->where('status', 'completed');
                     }
@@ -63,13 +65,31 @@ class BarterController extends Controller
             })
             ->paginate();
 
-        $bartersTransformed = $barters->getCollection()->map(function ($barter) use ($user) {
+        // Batch load trade statistics for all users to optimize rating calculation
+        $userIds = $barters->getCollection()->pluck('user_id')->unique()->filter()->values();
+        $tradeStats = collect();
+        
+        if ($userIds->isNotEmpty()) {
+            $tradeStats = \App\Models\BarterResponse::whereIn('user_id', $userIds)
+                ->selectRaw('user_id, COUNT(*) as total, SUM(CASE WHEN status = "completed" THEN 1 ELSE 0 END) as completed')
+                ->groupBy('user_id')
+                ->get()
+                ->keyBy('user_id');
+        }
+
+        $bartersTransformed = $barters->getCollection()->map(function ($barter) use ($user, $tradeStats) {
             if ($barter->user_id === $user->id) {
                 $barter->sentResponses = $barter->responses()->with('user')->get();
                 $barter->myResponse = null;
             } else {
                 $barter->myResponse = $barter->responses()->where('user_id', $user->id)->first();
                 $barter->sentResponses = null;
+            }
+
+            // Calculate store rating if user has a store
+            if ($barter->user && $barter->user->store) {
+                $barter->user->store->rating = $barter->user->store->getRatingOptimized($tradeStats);
+                $barter->user->rating = $barter->user->store->rating;
             }
 
             return $barter;

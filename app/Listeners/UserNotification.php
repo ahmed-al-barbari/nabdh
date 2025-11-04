@@ -23,27 +23,28 @@ class UserNotification {
 
         foreach ( $users as $user ) {
             $alert = $user->userNotifications->where( 'product_id', $event->product->product_id )->first();
-            if ( $alert?->status == 'active' ) {
+            // Check if alert is active AND not already triggered to prevent duplicates
+            if ( $alert?->status == 'active' && !$alert->is_triggered ) {
                 $type = $alert->type;
                 if ( ( $type == 'gt' ) && $alert->target_price < $productPrice ) {
+                    // Update alert status immediately to prevent duplicate processing
+                    $alert->update( [
+                        'is_triggered' => true,
+                        'status' => 'inactive',
+                    ] );
                     $title = "{$productName} ارتفع الى {$productPrice}₪ في {$storeName}";
                     $status = 'gt';
-                    $user->notify( new \App\Notifications\UserNotification( $title, $status ) );
-                    if ( !$alert->is_triggered ) {
-                        $alert->update( [
-                            'is_triggered' => true,
-                        ] );
-                    }
+                    $user->notify( new \App\Notifications\UserNotification( $title, $status, $alert->id ) );
                 }
                 if ( ( $type == 'lt' ) && $alert->target_price > $productPrice ) {
+                    // Update alert status immediately to prevent duplicate processing
+                    $alert->update( [
+                        'is_triggered' => true,
+                        'status' => 'inactive',
+                    ] );
                     $title = "{$productName} انخفض الى {$productPrice}₪ في {$storeName}";
                     $status = 'lt';
-                    $user->notify( new \App\Notifications\UserNotification( $title, $status ) );
-                    if ( !$alert->is_triggered ) {
-                        $alert->update( [
-                            'is_triggered' => true,
-                        ] );
-                    }
+                    $user->notify( new \App\Notifications\UserNotification( $title, $status, $alert->id ) );
                 }
 
             }

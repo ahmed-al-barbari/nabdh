@@ -101,42 +101,62 @@ class CustomerController extends Controller {
     /**
      * حساب درجة موثوقية المستخدم
      */
-    public function getUserReliabilityScore()
+    public function getUserReliabilityScore(Request $request)
     {
-        $user = auth()->user(); // المستخدم المسجل دخول
+        $requestedUserId = $request->input('user_id');
+        $targetUser = $requestedUserId ? \App\Models\User::find($requestedUserId) : auth()->user();
+        
+        if (!$targetUser) {
+            return response()->json([
+                'message' => 'User not found',
+                'score' => 0
+            ], 404);
+        }
 
         $score = 0;
 
-        // 1️⃣ رقم الهاتف (20%)
-        $score += $user->phone ? 20 : 0;
+        // 1️⃣ رقم الهاتف (30%) - Verified identity is crucial baseline
+        $score += $targetUser->phone ? 30 : 0;
 
-        // 2️⃣ المقايضات المكتملة (40%)
-        $totalTrades = \App\Models\BarterResponse::where('user_id', $user->id)->count();
-        $completedTrades = \App\Models\BarterResponse::where('user_id', $user->id)
+        // 2️⃣ المقايضات المكتملة (35%) - Transaction reliability is key trust indicator
+        $totalTrades = \App\Models\BarterResponse::where('user_id', $targetUser->id)->count();
+        $completedTrades = \App\Models\BarterResponse::where('user_id', $targetUser->id)
             ->where('status', 'completed')
             ->count();
-        $tradeScore = $totalTrades > 0 ? ($completedTrades / $totalTrades) * 40 : 0;
+        // Give partial credit for having trades even if not all completed (encourages participation)
+        if ($totalTrades > 0) {
+            $completionRate = $completedTrades / $totalTrades;
+            $tradeScore = $completionRate * 35;
+        } else {
+            // New users: give small base score to avoid harsh penalty
+            $tradeScore = 5; // 5% base score for new users
+        }
         $score += $tradeScore;
 
-        // 3️⃣ البلاغات + تقييم المنتجات (40%)
+        // 3️⃣ البلاغات + تقييم المنتجات (35%) - Product quality shows merchant reliability
         $productScores = [];
 
-        foreach ($user->store?->products ?? [] as $product) {
+        foreach ($targetUser->store?->products ?? [] as $product) {
             // استخدام قيمة افتراضية 4 إذا ما فيه rating
             $productRating = $product->rating ?? 4;
             if ($productRating <= 3) continue; // فقط المنتجات بتقييم > 3
 
             $totalReports = $product->reports->count();
-            $completedReports = $product->reports->where('status', 'completed')->count();
+            $reviewedReports = $product->reports->where('status', 'reviewed')->count();
 
-            // إذا ما فيه تقارير، نعتبرها كاملة (1)
-            $productScore = $totalReports > 0 ? ($completedReports / $totalReports) : 1;
+            // إذا ما فيه تقارير، نعتبرها جيدة (1)
+            $productScore = $totalReports > 0 ? ($reviewedReports / $totalReports) : 1;
             $productScores[] = $productScore;
         }
 
-        // إذا ما فيه منتجات محسوبة، نعتبر 100%
-        $averageProductScore = count($productScores) > 0 ? array_sum($productScores) / count($productScores) : 1;
-        $score += $averageProductScore * 40;
+        // إذا ما فيه منتجات محسوبة، نعتبر 100% (or give base score)
+        if (count($productScores) > 0) {
+            $averageProductScore = array_sum($productScores) / count($productScores);
+            $score += $averageProductScore * 35;
+        } else {
+            // Users without products (non-merchants) get base score
+            $score += 20; // 20% base score for non-merchants
+        }
 
         return response()->json([
             'message' => 'User reliability score fetched successfully',

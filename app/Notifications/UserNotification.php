@@ -13,9 +13,9 @@ class UserNotification extends Notification
     /**
      * Create a new notification instance.
      */
-    public function __construct(public string $title, public string $status)
+    public function __construct(public string $title, public string $status, public ?int $alert_id = null)
     {
-        // initialize notification with title and status
+        // initialize notification with title, status, and optional alert_id
     }
 
     /**
@@ -47,10 +47,17 @@ class UserNotification extends Notification
      */
     public function toArray(object $notifiable): array
     {
-        return [
+        $data = [
             'type' => 'user_notification',
             'title' => $this->title,
             'status' => $this->status
         ];
+        
+        // Include alert_id if provided (for triggering alerts)
+        if ($this->alert_id !== null) {
+            $data['alert_id'] = $this->alert_id;
+        }
+        
+        return $data;
     }
 }

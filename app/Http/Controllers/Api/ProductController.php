@@ -71,13 +71,25 @@ class ProductController extends Controller
 
     public function show($id)
     {
-
-        $product = Auth::user()->store->products()->with(['store:id,name,address,city_id', 'activeOffer'])->where('id', $id)->first();
+        $product = Auth::user()->store->products()
+            ->with([
+                'store' => function ($q) {
+                    $q->with(['user', 'products.reports']);
+                },
+                'activeOffer'
+            ])
+            ->where('id', $id)
+            ->first();
+        
+        // Calculate store rating if store exists
+        if ($product && $product->store) {
+            $product->store->rating = $product->store->getRating();
+        }
+        
         return response()->json([
             'message' => ApiMessage::PRODUCT_FETCHED->value,
             'product' => $product,
         ]);
-       
     }
 
 
@@ -148,10 +160,21 @@ class ProductController extends Controller
 
     public function viewProduct(Product $product)
     {
+        $product->load([
+            'store' => function ($q) {
+                $q->with(['user', 'products.reports']);
+            },
+            'activeOffer'
+        ]);
+        
+        // Calculate store rating if store exists
+        if ($product->store) {
+            $product->store->rating = $product->store->getRating();
+        }
 
         return response()->json([
             'message' => ApiMessage::PRODUCT_FETCHED->value,
-            'product' => $product->load(['store:id,name,address,city_id', 'activeOffer'])->append(['is_reported']),
+            'product' => $product->append(['is_reported']),
         ]);
     }
     public function lastProduct()
