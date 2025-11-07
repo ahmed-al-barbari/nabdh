@@ -79,15 +79,12 @@ class OfferController extends Controller {
     }
 
     public function destroy( $id ) {
-        \Log::info('Attempting to delete offer', ['offer_id' => $id, 'user_id' => Auth::id()]);
-        
         $offer = Offer::findOrFail( $id );
 
         $userStore = Auth::user()->store;
 
         // تحقق إن المستخدم عنده متجر أولاً
         if ( !$userStore ) {
-            \Log::warning('User has no store', ['user_id' => Auth::id()]);
             return response()->json( [
                 'message' => ApiMessage::UNAUTHORIZED->value
             ], 403 );
@@ -97,31 +94,13 @@ class OfferController extends Controller {
         $isOwner = $offer->product->store_id === $userStore->id;
 
         if ( !$isOwner ) {
-            \Log::warning('User does not own this offer', [
-                'user_id' => Auth::id(),
-                'offer_id' => $id,
-                'product_store_id' => $offer->product->store_id,
-                'user_store_id' => $userStore->id
-            ]);
             return response()->json( [
                 'message' => ApiMessage::UNAUTHORIZED->value
             ], 403 );
         }
 
         try {
-            $deleted = $offer->delete();
-            
-            \Log::info('Offer deleted', ['offer_id' => $id, 'success' => $deleted]);
-            
-            // Verify the offer is actually deleted from database
-            $stillExists = Offer::find($id);
-            if ($stillExists) {
-                \Log::error('Offer still exists after delete!', ['offer_id' => $id]);
-                return response()->json([
-                    'message' => 'Failed to delete offer from database',
-                    'deleted' => false
-                ], 500);
-            }
+            $offer->delete();
 
             return response()->json( [
                 'message' => ApiMessage::OFFER_DELETED->value,
@@ -130,8 +109,7 @@ class OfferController extends Controller {
         } catch (\Exception $e) {
             \Log::error('Error deleting offer', [
                 'offer_id' => $id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'error' => $e->getMessage()
             ]);
             return response()->json([
                 'message' => 'Error deleting offer: ' . $e->getMessage(),

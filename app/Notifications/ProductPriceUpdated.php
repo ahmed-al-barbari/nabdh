@@ -19,19 +19,27 @@ class ProductPriceUpdated extends Notification implements ShouldQueue
 
     /**
      * Channels to send the notification
+     * Only sends if toggle is explicitly enabled (true)
      */
     public function via($notifiable): array
     {
         $channels = ['database', 'broadcast'];
+        $notificationMethods = $notifiable->notification_methods ?? [];
 
-        // مثال على الإيميل إذا المستخدم مفعله
-        if ($notifiable->notification_methods['email'] ?? false) {
+        // Email - only if toggle is ON
+        if (!empty($notificationMethods['email']) && $notificationMethods['email'] === true) {
             $channels[] = 'mail';
         }
 
-        // ممكن توسع لاحقًا لـ sms أو whats
-        // if ($notifiable->notification_methods['sms'] ?? false) { $channels[] = 'sms'; }
-        // if ($notifiable->notification_methods['whats'] ?? false) { $channels[] = 'whats'; }
+        // SMS notifications - only if toggle is ON
+        if (!empty($notificationMethods['sms']) && $notificationMethods['sms'] === true) {
+            $channels[] = 'sms';
+        }
+
+        // WhatsApp notifications - only if toggle is ON
+        if (!empty($notificationMethods['whatsapp']) && $notificationMethods['whatsapp'] === true) {
+            $channels[] = 'whatsapp';
+        }
 
         return $channels;
     }
@@ -46,6 +54,26 @@ class ProductPriceUpdated extends Notification implements ShouldQueue
             ->line("السعر الحالي للمنتج '{$this->product->name}' أصبح {$this->product->price}₪ في {$this->product->store->name}.")
             ->action('عرض المنتج', url("/products/{$this->product->id}"))
             ->line('شكراً لاستخدامك تطبيقنا!');
+    }
+
+    /**
+     * SMS representation
+     */
+    public function toSms($notifiable): string
+    {
+        return "تحديث سعر: {$this->product->name} - السعر الجديد: {$this->product->price}₪ في {$this->product->store->name}";
+    }
+
+    /**
+     * WhatsApp representation
+     */
+    public function toWhatsApp($notifiable): string
+    {
+        return "🔔 تحديث سعر المنتج\n\n"
+             . "المنتج: {$this->product->name}\n"
+             . "السعر الجديد: {$this->product->price}₪\n"
+             . "المتجر: {$this->product->store->name}\n\n"
+             . "شكراً لاستخدامك تطبيقنا!";
     }
 
     /**

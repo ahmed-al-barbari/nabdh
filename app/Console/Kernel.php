@@ -12,7 +12,11 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-         $schedule->command('notifications:check')->everyFiveMinutes();
+        // Check price alerts every 5 minutes (for lt/gt triggers)
+        $schedule->command('notifications:check')->everyFiveMinutes();
+        
+        // Send daily summary once per day at 9:00 AM
+        $schedule->command('notifications:daily-summary')->dailyAt('09:00');
     }
 
     /**

@@ -20,12 +20,30 @@ class UserNotification extends Notification
 
     /**
      * Get the notification's delivery channels.
+     * Includes SMS/WhatsApp for alerts if user has them enabled
      *
      * @return array<int, string>
      */
     public function via(object $notifiable): array
     {
         $channels = ['database', 'broadcast'];
+        $methods = $notifiable->notification_methods ?? [];
+        
+        // Email for alerts - only if toggle is ON
+        if (!empty($methods['email']) && $methods['email'] === true) {
+            $channels[] = 'mail';
+        }
+        
+        // SMS for alerts - only if toggle is ON
+        if (!empty($methods['sms']) && $methods['sms'] === true) {
+            $channels[] = 'sms';
+        }
+        
+        // WhatsApp for alerts - only if toggle is ON
+        if (!empty($methods['whatsapp']) && $methods['whatsapp'] === true) {
+            $channels[] = 'whatsapp';
+        }
+        
         return $channels;
     }
 
@@ -35,9 +53,27 @@ class UserNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->line('The introduction to the notification.')
-            ->action('Notification Action', url('/'))
-            ->line('Thank you for using our application!');
+            ->subject('تنبيه سعر - Nabd')
+            ->line($this->title)
+            ->line('شكراً لاستخدامك تطبيقنا!');
+    }
+
+    /**
+     * SMS representation - concise alert format
+     */
+    public function toSms($notifiable): string
+    {
+        // Keep it simple - just the title (already formatted in listener)
+        return $this->title;
+    }
+
+    /**
+     * WhatsApp representation - same format as SMS
+     */
+    public function toWhatsApp($notifiable): string
+    {
+        // Same format for WhatsApp
+        return $this->title;
     }
 
     /**

@@ -18,7 +18,7 @@ class AdminSeeder extends Seeder {
             'notification_methods' => [
                 'sms' => false,
                 'email' => false,
-                'whats' => false,
+                'whatsapp' => false,
             ],
         ] );
     }

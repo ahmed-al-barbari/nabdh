@@ -131,7 +131,7 @@ class NotificationController extends Controller {
     public function changeMethodStauts( Request $request ) {
         $request->validate( [
             'status' => 'required|boolean',
-            'notification_method' => 'required|in:email,sms,whats',
+            'notification_method' => 'required|in:email,sms,whatsapp',
         ] );
 
         $user = Auth::user();

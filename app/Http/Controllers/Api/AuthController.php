@@ -34,7 +34,7 @@ class AuthController extends Controller
         $validated['notification_methods'] = [
             'sms' => false,
             'email' => false,
-            'whats' => false,
+            'whatsapp' => false,
         ];
         $user = User::create($validated);
         session()->regenerate();

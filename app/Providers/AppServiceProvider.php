@@ -3,6 +3,9 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\Channels\SmsChannel;
+use App\Notifications\Channels\WhatsAppChannel;
 
 class AppServiceProvider extends ServiceProvider {
     /**
@@ -18,6 +21,13 @@ class AppServiceProvider extends ServiceProvider {
     */
 
     public function boot(): void {
-        // Bootstrap any application services
+        // Register custom notification channels
+        Notification::extend('sms', function ($app) {
+            return new SmsChannel($app->make(\App\Services\SmsService::class));
+        });
+
+        Notification::extend('whatsapp', function ($app) {
+            return new WhatsAppChannel($app->make(\App\Services\SmsService::class));
+        });
     }
 }

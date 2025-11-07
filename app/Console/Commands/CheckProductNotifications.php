@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Models\UserNotification;
+use App\Services\SmsService;
 use Illuminate\Support\Facades\Mail;
 
 class CheckProductNotifications extends Command
@@ -24,20 +25,43 @@ class CheckProductNotifications extends Command
 
     /**
      * Execute the console command.
+     * FIXED: Now respects user's notification_methods toggle instead of deprecated 'method' field
      */
     public function handle()
     {
-        $notifications = UserNotification::where('is_triggered', false)->get();
+        $notifications = UserNotification::with('user', 'product')->where('is_triggered', false)->get();
 
         foreach ($notifications as $notification) {
+            // Check if product exists and price condition is met
+            if (!$notification->product || !$notification->user) {
+                continue;
+            }
+
             if ($notification->product->price <= $notification->target_price) {
                 $notification->update(['is_triggered' => true]);
 
-                match ($notification->method) {
-                    'sms' => $this->sendSms($notification->user->phone, "The product {$notification->product->name} reached your target price!"),
-                    'whatsapp' => $this->sendWhatsapp($notification->user->phone, "The product {$notification->product->name} reached your target price!"),
-                    'email' => $this->sendEmail($notification->user->email, "The product {$notification->product->name} reached your target price!"),
-                };
+                $user = $notification->user;
+                
+                // Get user's notification method preferences - respect toggles
+                $methods = $user->notification_methods ?? [];
+                $hasSms = !empty($methods['sms']) && $methods['sms'] === true;
+                $hasWhatsApp = !empty($methods['whatsapp']) && $methods['whatsapp'] === true;
+                $hasEmail = !empty($methods['email']) && $methods['email'] === true;
+
+                $message = "المنتج {$notification->product->name} وصل للسعر المطلوب: {$notification->product->price}₪";
+
+                // Send notifications based on user's enabled methods (respecting toggles)
+                if ($hasSms && $user->phone) {
+                    $this->sendSms($user->phone, $message);
+                }
+
+                if ($hasWhatsApp && $user->phone) {
+                    $this->sendWhatsapp($user->phone, $message);
+                }
+
+                if ($hasEmail && $user->email) {
+                    $this->sendEmail($user->email, $message);
+                }
             }
         }
 
@@ -46,12 +70,14 @@ class CheckProductNotifications extends Command
 
     private function sendSms($phone, $message)
     {
-        // كود الإرسال SMS
+        $smsService = app(SmsService::class);
+        return $smsService->sendSms($phone, $message);
     }
 
     private function sendWhatsapp($phone, $message)
     {
-        // كود الإرسال واتساب
+        $smsService = app(SmsService::class);
+        return $smsService->sendWhatsApp($phone, $message);
     }
 
     private function sendEmail($email, $message)
