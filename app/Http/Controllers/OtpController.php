@@ -2,16 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use DB;
 use Illuminate\Http\Request;
-
-
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Carbon;
-
+use App\Services\OtpService;
 
 class OtpController extends Controller
 {
+    protected $otpService;
+
+    public function __construct(OtpService $otpService)
+    {
+        $this->otpService = $otpService;
+    }
+
     public function verify(Request $request)
     {
         $request->validate([
@@ -19,26 +22,17 @@ class OtpController extends Controller
             'otp' => 'required|string|min:6|max:6',
         ]);
 
-        $reset = DB::table('password_resets')
-            ->where(function ($q) use ($request) {
-                $q->where('email', $request->identifier)
-                    ->orWhere('phone', $request->identifier);
-            })
-            ->where('token', $request->otp)
-            ->first();
-
-        if (!$reset) {
-            return response()->json(['message' => 'الكود غير صحيح'], 400);
-        }
-
-        if (Carbon::parse($reset->created_at)->addMinutes(15)->isPast()) {
-            return response()->json(['message' => 'الكود منتهي الصلاحية'], 400);
+        if (!$this->otpService->verify($request->identifier, $request->otp)) {
+            return response()->json(['message' => 'الكود غير صحيح، يرجى المحاولة مرة أخرى'], 400);
         }
 
         $token = base64_encode(json_encode([
             'identifier' => $request->identifier,
             'verified_at' => now(),
         ]));
+
+        // Don't delete OTP here - it will be deleted after password reset
+        // This allows the OTP to be verified again in ResetPasswordController
 
         return response()->json([
             'message' => 'تم التحقق بنجاح',

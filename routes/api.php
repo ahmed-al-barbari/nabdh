@@ -43,6 +43,7 @@ Route::get('auth/google', [GoogleController::class, 'redirectToGoogle']);
 Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 
 Route::get('/search/stores/{product}', [SearchController::class, 'searchStores']);
+Route::get('/search/stores-by-category/{category}', [SearchController::class, 'searchStoresByCategory']);
 
 Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink']);
 Route::post('/reset-password', [ResetPasswordController::class, 'reset']);

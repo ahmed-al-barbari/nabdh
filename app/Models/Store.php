@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use App\Models\BarterResponse;
 
 class Store extends Model
@@ -57,7 +58,7 @@ class Store extends Model
             return $builder;
         }
 
-        $userCityId = Auth::user()->city?->id;
+        $userCityId = Auth::check() ? Auth::user()->city?->id : null;
 
         $builder->when($filter->dependent ?? false, function ($q, $value) use ($product, $userCityId) {
             $value = strtolower($value);
@@ -94,6 +95,56 @@ class Store extends Model
                 })
                     ->orderBy('products.price', 'asc')
                     ->select('stores.*');
+            }
+        });
+
+        return $builder;
+    }
+
+    public function scopeFilterByCategory(Builder $builder, ?object $filter, $category, $mainProductIds)
+    {
+        if (!$filter) {
+            return $builder;
+        }
+
+        $userCityId = Auth::check() ? Auth::user()->city?->id : null;
+
+        $builder->when($filter->dependent ?? false, function ($q, $value) use ($mainProductIds, $userCityId) {
+            $value = strtolower($value);
+
+            if ($value === 'distance') {
+                if (!$userCityId) {
+                    return;
+                }
+
+                $q->leftJoin('distances', function ($join) use ($userCityId) {
+                    $join->on(function ($query) use ($userCityId) {
+                        $query->whereColumn('distances.city_id_one', 'stores.city_id')
+                            ->where('distances.city_id_two', $userCityId)
+                            ->orWhere(function ($q2) use ($userCityId) {
+                                $q2->whereColumn('distances.city_id_two', 'stores.city_id')
+                                    ->where('distances.city_id_one', $userCityId);
+                            });
+                    });
+                })
+                    ->select('stores.*', 'distances.distance')
+                    // Sort: Same city first (NULL distance = في منطقتك), then by numeric distance
+                    ->orderByRaw('CASE WHEN stores.city_id = ? THEN 0 ELSE CAST(distances.distance AS UNSIGNED) END ASC', [$userCityId]);
+            } elseif ($value === 'rating') {
+                $q->with([
+                    'products' => function ($q2) use ($mainProductIds) {
+                        $q2->whereIn('product_id', $mainProductIds);
+                    }
+                ]);
+
+            } elseif ($value === 'price') {
+                $q->join('products', function ($join) use ($mainProductIds) {
+                    $join->on('products.store_id', '=', 'stores.id')
+                        ->whereIn('products.product_id', $mainProductIds);
+                })
+                    ->select('stores.*', DB::raw('MIN(products.price) as min_price'))
+                    ->groupBy('stores.id')
+                    ->orderBy('min_price', 'asc');
             }
         });
 

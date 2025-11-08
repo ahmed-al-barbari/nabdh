@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Customer;
 
 use App\Models\MainProduct;
 use App\Models\Store;
+use App\Models\Category;
 use App\Enums\ApiMessage;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -66,6 +67,157 @@ class SearchController extends Controller
             'message' => ApiMessage::STORES_FETCHED->value,
             'stores' => $paginatedStores,
         ]);
+    }
+
+    public function searchStoresByCategory(Request $request, Category $category)
+    {
+        $perPage = $request->per_page ?? 10;
+        $page = $request->input('page', 1);
+        $filter = json_decode($request->filter);
+
+        // Get all main products in this category
+        $mainProductIds = MainProduct::where('category_id', $category->id)->pluck('id');
+
+        if ($mainProductIds->isEmpty()) {
+            // No products in this category
+            $paginatedStores = new LengthAwarePaginator(
+                collect(),
+                0,
+                $perPage,
+                $page,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+
+            return response()->json([
+                'message' => ApiMessage::STORES_FETCHED->value,
+                'stores' => $paginatedStores,
+            ]);
+        }
+
+        // Get stores that have products in this category
+        $stores = Store::whereHas('products', function ($q) use ($mainProductIds) {
+            $q->whereIn('product_id', $mainProductIds);
+        })->with([
+                'city',
+                'user',
+                'products' => function ($q) use ($mainProductIds) {
+                    $q->whereIn('product_id', $mainProductIds);
+                },
+                'products.reports',
+                'products.mainProduct'
+            ])
+            ->filterByCategory($filter, $category, $mainProductIds)
+            ->get();
+        
+        // Batch load trade statistics for all users to avoid N+1 queries
+        $userIds = $stores->pluck('user_id')->unique()->filter()->values();
+        $tradeStats = collect();
+        
+        if ($userIds->isNotEmpty()) {
+            $tradeStats = \App\Models\BarterResponse::whereIn('user_id', $userIds)
+                ->selectRaw('user_id, COUNT(*) as total, SUM(CASE WHEN status = "completed" THEN 1 ELSE 0 END) as completed')
+                ->groupBy('user_id')
+                ->get()
+                ->keyBy('user_id');
+        }
+        
+        // Calculate ratings efficiently using pre-loaded trade stats
+        $stores->each(function ($store) use ($tradeStats) {
+            $store->rating = $store->getRatingOptimized($tradeStats);
+        });
+
+        // Apply price rating if rating filter is selected
+        if (!empty($filter) && strtolower($filter->dependent ?? '') === 'rating') {
+            $stores = $this->applyPriceRatingForCategory($stores, $category, $mainProductIds);
+        }
+
+        // Paginate results
+        $paginatedStores = new LengthAwarePaginator(
+            $stores->forPage($page, $perPage),
+            $stores->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        return response()->json([
+            'message' => ApiMessage::STORES_FETCHED->value,
+            'stores' => $paginatedStores,
+        ]);
+    }
+
+    /**
+     * Apply price rating to stores for category search
+     * Uses the minimum price of products in the category for each store
+     */
+    private function applyPriceRatingForCategory($stores, $category, $mainProductIds)
+    {
+        // Collect all prices for products in this category across all stores
+        $allPrices = collect();
+        $storesWithPrices = $stores->filter(function ($store) use (&$allPrices, $mainProductIds) {
+            // Get the minimum price product in this category for this store
+            $categoryProducts = $store->products->filter(function ($product) use ($mainProductIds) {
+                return in_array($product->product_id, $mainProductIds->toArray());
+            });
+            
+            if ($categoryProducts->isNotEmpty()) {
+                $minPrice = $categoryProducts->min('price');
+                if ($minPrice && $minPrice > 0) {
+                    $allPrices->push($minPrice);
+                    return true;
+                }
+            }
+            return false;
+        });
+
+        if ($storesWithPrices->isEmpty()) {
+            return $stores->map(function ($store) {
+                $store->price_rating = 'no_rating';
+                $store->price_rating_score = 0;
+                return $store;
+            });
+        }
+
+        // Convert to array and sort numerically
+        $pricesArray = $allPrices->sortBy(function($price) {
+            return $price;
+        })->values()->all();
+
+        // Calculate market statistics
+        $marketStats = $this->calculateMarketStatistics($pricesArray, null);
+
+        // Rate each store using the calculated statistics
+        return $storesWithPrices->map(function ($store) use ($marketStats, $mainProductIds) {
+            $categoryProducts = $store->products->filter(function ($product) use ($mainProductIds) {
+                return in_array($product->product_id, $mainProductIds->toArray());
+            });
+            $storePrice = $categoryProducts->min('price');
+
+            // Determine rating based on sample size and data quality
+            if ($marketStats['strategy'] === 'small_sample') {
+                $rating = $this->rateSmallSample($storePrice, $marketStats);
+            } elseif ($marketStats['strategy'] === 'high_variance') {
+                $rating = $this->rateHighVariance($storePrice, $marketStats);
+            } elseif ($marketStats['strategy'] === 'low_variance') {
+                $rating = $this->rateLowVariance($storePrice, $marketStats);
+            } else {
+                $rating = $this->rateStandard($storePrice, $marketStats);
+            }
+
+            $store->price_rating = $rating['rating'];
+            $store->price_rating_score = $rating['score'];
+
+            return $store;
+        })->merge($stores->reject(function ($store) use ($mainProductIds) {
+            $categoryProducts = $store->products->filter(function ($product) use ($mainProductIds) {
+                return in_array($product->product_id, $mainProductIds->toArray());
+            });
+            return $categoryProducts->isNotEmpty() && $categoryProducts->min('price') > 0;
+        })->map(function ($store) {
+            $store->price_rating = 'no_rating';
+            $store->price_rating_score = 0;
+            return $store;
+        }))->sortByDesc('price_rating_score')->values();
     }
 
     /**
