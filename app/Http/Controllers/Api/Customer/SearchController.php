@@ -101,7 +101,10 @@ class SearchController extends Controller
                 'city',
                 'user',
                 'products' => function ($q) use ($mainProductIds) {
-                    $q->whereIn('product_id', $mainProductIds);
+                    $q->whereIn('product_id', $mainProductIds)
+                      ->orderByRaw(
+                        "CAST(REPLACE(REPLACE(REPLACE(REPLACE(price, ',', ''), '₪', ''), 'ILS', ''), ' ', '') AS DECIMAL(10,2)) ASC"
+                      );
                 },
                 'products.reports',
                 'products.mainProduct'

@@ -93,7 +93,7 @@ class Store extends Model
                     $join->on('products.store_id', '=', 'stores.id')
                         ->where('products.product_id', $product->id);
                 })
-                    ->orderBy('products.price', 'asc')
+                    ->orderByRaw("(REPLACE(products.price, ',', '') + 0) ASC")
                     ->select('stores.*');
             }
         });
@@ -138,13 +138,20 @@ class Store extends Model
                 ]);
 
             } elseif ($value === 'price') {
-                $q->join('products', function ($join) use ($mainProductIds) {
-                    $join->on('products.store_id', '=', 'stores.id')
-                        ->whereIn('products.product_id', $mainProductIds);
+                // Efficient numeric min-price per store using subquery with lightweight numeric coercion
+                $minPriceSub = DB::table('products')
+                    ->select(
+                        'store_id',
+                        DB::raw("MIN((REPLACE(price, ',', '') + 0)) AS min_price")
+                    )
+                    ->whereIn('products.product_id', $mainProductIds)
+                    ->groupBy('store_id');
+
+                $q->joinSub($minPriceSub, 'min_prices', function ($join) {
+                    $join->on('min_prices.store_id', '=', 'stores.id');
                 })
-                    ->select('stores.*', DB::raw('MIN(products.price) as min_price'))
-                    ->groupBy('stores.id')
-                    ->orderBy('min_price', 'asc');
+                    ->select('stores.*', 'min_prices.min_price')
+                    ->orderBy('min_prices.min_price', 'asc');
             }
         });
 

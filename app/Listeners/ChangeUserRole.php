@@ -22,7 +22,7 @@ class ChangeUserRole {
         $title = 'تغيير دور المستخدم';
         $icon = 'role';
         $role = $event->user->role == 'merchant' ? 'تاجر' : 'مستهلك';
-        $text = "قام {$event->user->name} بتغيير دوره الى {$role}";
+        $text = "قام {$event->user->name} بتغيير دوره إلى {$role}";
         Notification::send( $users, new AdminNotification( $title, $text, $icon ) );
     }
 }

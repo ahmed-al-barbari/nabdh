@@ -32,7 +32,7 @@ class UserNotification {
                         'is_triggered' => true,
                         'status' => 'inactive',
                     ] );
-                    $title = "{$productName} ارتفع الى {$productPrice}₪ في {$storeName}";
+                    $title = "{$productName} ارتفع إلى {$productPrice}₪ في {$storeName}";
                     $status = 'gt';
                     $user->notify( new \App\Notifications\UserNotification( $title, $status, $alert->id ) );
                 }
@@ -42,7 +42,7 @@ class UserNotification {
                         'is_triggered' => true,
                         'status' => 'inactive',
                     ] );
-                    $title = "{$productName} انخفض الى {$productPrice}₪ في {$storeName}";
+                    $title = "{$productName} انخفض إلى {$productPrice}₪ في {$storeName}";
                     $status = 'lt';
                     $user->notify( new \App\Notifications\UserNotification( $title, $status, $alert->id ) );
                 }
