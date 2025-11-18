@@ -37,8 +37,12 @@ RUN composer dump-autoload --optimize
 RUN chmod -R 775 /var/www/html/storage \
     && chmod -R 775 /var/www/html/bootstrap/cache
 
+# Copy and make startup script executable
+COPY start.sh /usr/local/bin/start.sh
+RUN chmod +x /usr/local/bin/start.sh
+
 # Expose port
 EXPOSE 8000
 
-# Start PHP built-in server (Render sets PORT env var)
-CMD php artisan serve --host=0.0.0.0 --port=${PORT:-8000}
+# Use startup script (runs migrations automatically)
+CMD ["/usr/local/bin/start.sh"]
