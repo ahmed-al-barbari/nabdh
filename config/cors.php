@@ -19,7 +19,10 @@ return [
 
     'allowed_methods' => [ '*' ],
 
-    'allowed_origins' => [ 'http://localhost:4000' ],
+    'allowed_origins' => [
+        'http://localhost:4000', // Local development
+        env('FRONTEND_URL', 'http://localhost:4000'), // Production frontend URL
+    ],
 
     'allowed_origins_patterns' => [],
 
