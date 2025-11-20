@@ -31,11 +31,11 @@ class UserSeeder extends Seeder {
             [ 'id' => 2, 'name' => 'علي عمر', 'email' => 'ali@gazatech.ps', 'phone' => '+970592000001', 'city_id' => 5 ],
             [ 'id' => 6, 'name' => 'خالد نوفل', 'email' => 'khaled@pharma.ps', 'phone' => '+970598888888', 'city_id' => 4, 'theme' => 'dark' ],
             [ 'id' => 7, 'name' => 'محمد عبدالله', 'email' => 'm@g.com', 'phone' => null, 'city_id' => 9 ],
-            [ 'id' => 8, 'name' => 'محمد عبد الهادي', 'email' => 'moh@g.com', 'phone' => '+971111111111', 'city_id' => 9 ],
+            [ 'id' => 8, 'name' => 'محمد عبدالهادي', 'email' => 'moh@g.com', 'phone' => '+971111111111', 'city_id' => 9 ],
             [ 'id' => 10, 'name' => 'ابراهيم حسونة', 'email' => 'h@mail.com', 'phone' => '+970592111111', 'city_id' => 8 ],
             [ 'id' => 11, 'name' => 'أحمد سلامة', 'email' => 'ah@mail.com', 'phone' => '+970596000000', 'city_id' => 4 ],
             [ 'id' => 12, 'name' => 'سامي حسن', 'email' => 'sami@mail.com', 'phone' => '+970591234567', 'city_id' => 8, 'status' => 'pending' ],
-            [ 'id' => 15, 'name' => 'محمد إياد الدالي', 'email' => 'eyad@mail.com', 'phone' => '+970593000001', 'city_id' => 4, 'theme' => 'dark' ],
+            [ 'id' => 15, 'name' => 'محمد الدالي', 'email' => 'eyad@mail.com', 'phone' => '+970595618146', 'city_id' => 4, 'theme' => 'dark' ],
         ];
 
         foreach ( $merchants as $merchant ) {
