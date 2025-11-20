@@ -35,11 +35,41 @@ class ReportController extends Controller {
     }
 
     public function update( Request $request, Product $product ) {
-        $product->report->update( [
+        $report = $product->report;
+        
+        // Only increment if status is changing from pending to reviewed
+        $wasPending = $report->status === 'pending';
+        
+        $report->update( [
             'status' => 'reviewed',
         ] );
+        
+        // When admin reviews a report, increment accurate_reports_count for all users who reported it
+        if ( $wasPending ) {
+            $report->users()->each( function ( $user ) {
+                $user->increment( 'accurate_reports_count' );
+            } );
+        }
+        
         return response()->json( [
             'message' => 'تم تحويل الحالة بنجاحّ'
+        ] );
+    }
+
+    public function destroy( Product $product ) {
+        $report = $product->report;
+        
+        if ( !$report ) {
+            return response()->json( [
+                'message' => 'البلاغ غير موجود'
+            ], 404 );
+        }
+        
+        // Delete the report (cascade will handle user_report pivot table)
+        $report->delete();
+        
+        return response()->json( [
+            'message' => 'تم حذف البلاغ بنجاح'
         ] );
     }
 }

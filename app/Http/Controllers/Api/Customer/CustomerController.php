@@ -115,52 +115,57 @@ class CustomerController extends Controller {
 
         $score = 0;
 
-        // 1️⃣ رقم الهاتف (30%) - Verified identity is crucial baseline
-        $score += $targetUser->phone ? 30 : 0;
+        // 1️⃣ Phone Verification (20%) - Verified identity baseline
+        $score += $targetUser->phone ? 20 : 0;
 
-        // 2️⃣ المقايضات المكتملة (35%) - Transaction reliability is key trust indicator
+        // 2️⃣ Accurate Reports (30%) - Valid reports reviewed by admin
+        // Count reports that were reviewed (validated by admin)
+        $totalReportsByUser = \DB::table('user_report')
+            ->join('reports', 'user_report.report_id', '=', 'reports.id')
+            ->where('user_report.user_id', $targetUser->id)
+            ->where('reports.status', 'reviewed')
+            ->count();
+        
+        // Score based on number of accurate reports (capped at 30%)
+        // 1 report = 10%, 2 reports = 20%, 3+ reports = 30%
+        $reportsScore = min(30, $totalReportsByUser * 10);
+        $score += $reportsScore;
+
+        // 3️⃣ Completed Trades (30%) - Transaction reliability
         $totalTrades = \App\Models\BarterResponse::where('user_id', $targetUser->id)->count();
         $completedTrades = \App\Models\BarterResponse::where('user_id', $targetUser->id)
             ->where('status', 'completed')
             ->count();
-        // Give partial credit for having trades even if not all completed (encourages participation)
+        
         if ($totalTrades > 0) {
             $completionRate = $completedTrades / $totalTrades;
-            $tradeScore = $completionRate * 35;
+            $tradeScore = $completionRate * 30;
         } else {
-            // New users: give small base score to avoid harsh penalty
-            $tradeScore = 5; // 5% base score for new users
+            // New users with no trades get 0% (encourages participation)
+            $tradeScore = 0;
         }
         $score += $tradeScore;
 
-        // 3️⃣ البلاغات + تقييم المنتجات (35%) - Product quality shows merchant reliability
-        $productScores = [];
+        // 4️⃣ Account Activity & Age (20%) - Account maturity and engagement
+        $accountAge = now()->diffInMonths($targetUser->created_at);
+        $hasEmail = $targetUser->email ? 1 : 0;
+        $hasLocation = ($targetUser->city_id && $targetUser->share_location) ? 1 : 0;
+        
+        // Account age: max 12 months = 10%, older accounts get full 10%
+        $ageScore = min(10, ($accountAge / 12) * 10);
+        
+        // Profile completeness: email (5%) + location (5%) = 10%
+        $profileScore = ($hasEmail * 5) + ($hasLocation * 5);
+        
+        $activityScore = $ageScore + $profileScore;
+        $score += $activityScore;
 
-        foreach ($targetUser->store?->products ?? [] as $product) {
-            // استخدام قيمة افتراضية 4 إذا ما فيه rating
-            $productRating = $product->rating ?? 4;
-            if ($productRating <= 3) continue; // فقط المنتجات بتقييم > 3
-
-            $totalReports = $product->reports->count();
-            $reviewedReports = $product->reports->where('status', 'reviewed')->count();
-
-            // إذا ما فيه تقارير، نعتبرها جيدة (1)
-            $productScore = $totalReports > 0 ? ($reviewedReports / $totalReports) : 1;
-            $productScores[] = $productScore;
-        }
-
-        // إذا ما فيه منتجات محسوبة، نعتبر 100% (or give base score)
-        if (count($productScores) > 0) {
-            $averageProductScore = array_sum($productScores) / count($productScores);
-            $score += $averageProductScore * 35;
-        } else {
-            // Users without products (non-merchants) get base score
-            $score += 20; // 20% base score for non-merchants
-        }
+        // Ensure score is between 0 and 100
+        $finalScore = min(100, max(0, $score));
 
         return response()->json([
             'message' => 'User reliability score fetched successfully',
-            'score' => round($score, 2) // قيمة بين 0 و 100
+            'score' => round($finalScore, 2) // قيمة بين 0 و 100
         ]);
     }
 }

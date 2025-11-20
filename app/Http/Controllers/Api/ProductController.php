@@ -172,6 +172,22 @@ class ProductController extends Controller
             $product->store->rating = $product->store->getRating();
         }
 
+        // Calculate price rating using PriceRatingService
+        $priceRatingService = app(PriceRatingService::class);
+        $recentPrices = $product->recent_prices;
+        // Convert collection to array if needed
+        $recentPricesArray = is_array($recentPrices) ? $recentPrices : $recentPrices->toArray();
+        $priceRating = $priceRatingService->calculatePriceRating($product->price, $recentPricesArray);
+        
+        // Map rating to backend format (best/good/high/no_rating)
+        $ratingMap = [
+            'عادل' => 'best',
+            'جيد' => 'good',
+            'مرتفع' => 'high',
+            'بلا تقييم' => 'no_rating'
+        ];
+        $product->price_rating = $ratingMap[$priceRating['rating']] ?? 'no_rating';
+
         return response()->json([
             'message' => ApiMessage::PRODUCT_FETCHED->value,
             'product' => $product->append(['is_reported']),

@@ -103,6 +103,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/users/{id}', [AdminController::class, 'destroy']);
         Route::get('/reports', [ReportController::class, 'index']);
         Route::put('/products/{product}/report/make-reviewed', [ReportController::class, 'update']);
+        Route::delete('/products/{product}/report', [ReportController::class, 'destroy']);
     });
 
     Route::prefix('merchant')->middleware(['auth:sanctum', 'role:merchant'])->group(function () {

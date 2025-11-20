@@ -29,7 +29,8 @@ class User extends Authenticatable
         'recive_notification',
         'notification_methods',
         'city_id',
-        'share_location'
+        'share_location',
+        'accurate_reports_count'
     ];
     public function favorites()
     {

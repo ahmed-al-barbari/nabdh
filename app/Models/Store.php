@@ -291,6 +291,7 @@ class Store extends Model
 
     /**
      * Optimized reliability calculation using pre-loaded trade stats
+     * Redesigned with clear percentages that sum to 100%
      */
     private function calculateUserReliabilityScoreOptimized($tradeStats = null): float
     {
@@ -301,43 +302,45 @@ class Store extends Model
 
         $score = 0;
 
-        // 1. Phone verification (30%) - Verified identity is crucial baseline
-        $score += $user->phone ? 30 : 0;
+        // 1. Phone Verification (20%) - Verified identity baseline
+        $score += $user->phone ? 20 : 0;
 
-        // 2. Completed trades (35%) - Transaction reliability is key trust indicator
+        // 2. Accurate Reports (30%) - Valid reports reviewed by admin
+        $totalReportsByUser = \DB::table('user_report')
+            ->join('reports', 'user_report.report_id', '=', 'reports.id')
+            ->where('user_report.user_id', $user->id)
+            ->where('reports.status', 'reviewed')
+            ->count();
+        
+        // 1 report = 10%, 2 reports = 20%, 3+ reports = 30%
+        $reportsScore = min(30, $totalReportsByUser * 10);
+        $score += $reportsScore;
+
+        // 3. Completed Trades (30%) - Transaction reliability
         $totalTrades = $tradeStats->total ?? 0;
         $completedTrades = $tradeStats->completed ?? 0;
-        // Give partial credit for having trades even if not all completed
+        
         if ($totalTrades > 0) {
             $completionRate = $completedTrades / $totalTrades;
-            $tradeScore = $completionRate * 35;
+            $tradeScore = $completionRate * 30;
         } else {
-            // New users: give small base score to avoid harsh penalty
-            $tradeScore = 5; // 5% base score for new users
+            $tradeScore = 0;
         }
         $score += $tradeScore;
 
-        // 3. Reports (35%) - Product quality shows merchant reliability
-        $productScores = [];
-        foreach ($this->products ?? [] as $product) {
-            // Ensure reports are loaded
-            if (!$product->relationLoaded('reports')) {
-                $product->load('reports');
-            }
-            
-            $totalReports = $product->reports->count();
-            $reviewedReports = $product->reports->where('status', 'reviewed')->count();
-            $productScore = $totalReports > 0 ? ($reviewedReports / $totalReports) : 1;
-            $productScores[] = $productScore;
-        }
-
-        if (count($productScores) > 0) {
-            $averageProductScore = array_sum($productScores) / count($productScores);
-            $score += $averageProductScore * 35;
-        } else {
-            // Users without products get base score
-            $score += 20; // 20% base score for non-merchants
-        }
+        // 4. Account Activity & Age (20%) - Account maturity and engagement
+        $accountAge = now()->diffInMonths($user->created_at);
+        $hasEmail = $user->email ? 1 : 0;
+        $hasLocation = ($user->city_id && $user->share_location) ? 1 : 0;
+        
+        // Account age: max 12 months = 10%
+        $ageScore = min(10, ($accountAge / 12) * 10);
+        
+        // Profile completeness: email (5%) + location (5%) = 10%
+        $profileScore = ($hasEmail * 5) + ($hasLocation * 5);
+        
+        $activityScore = $ageScore + $profileScore;
+        $score += $activityScore;
 
         return min(100, max(0, $score));
     }
