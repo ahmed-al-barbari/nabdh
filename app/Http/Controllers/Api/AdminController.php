@@ -48,7 +48,7 @@ class AdminController extends Controller {
             $query->where( 'status', $request->status );
         }
 
-        $users = $query->paginate( 10 );
+        $users = $query->paginate( 50 );
 
         return response()->json( $users );
     }

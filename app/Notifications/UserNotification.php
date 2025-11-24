@@ -53,7 +53,7 @@ class UserNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('تنبيه سعر - Nabd')
+            ->subject('تنبيه سعر - نبض')
             ->line($this->title)
             ->line('شكراً لاستخدامك تطبيقنا!');
     }
